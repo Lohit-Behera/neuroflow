@@ -4,11 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import Header from "@/components/header";
 import { AppSidebar } from "@/components/app-sidebar";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import StoreProvider from "./StoreProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -36,24 +33,26 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <div className="w-full min-h-screen flex flex-col justify-center items-center overflow-x-hidden">
-                <Header />
-                <main className="w-full flex-1 flex justify-center items-center my-6">
-                  {children}
-                </main>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </ThemeProvider>
+        <StoreProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset>
+                <div className="w-full min-h-screen flex flex-col justify-center items-center overflow-x-hidden">
+                  <Header />
+                  <main className="w-full flex-1 flex justify-center items-center">
+                    {children}
+                  </main>
+                </div>
+              </SidebarInset>
+            </SidebarProvider>
+          </ThemeProvider>
+        </StoreProvider>
       </body>
     </html>
   );

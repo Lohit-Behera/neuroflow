@@ -1,7 +1,11 @@
-export default function Home() {
+import Flow from "@/components/Flow";
+
+function Home() {
   return (
     <>
-      <div>HomePage</div>
+      <Flow />
     </>
   );
 }
+
+export default Home;
