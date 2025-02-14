@@ -1,8 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
+import flowSlice from "./features/flowSlice";
 
 export const makeStore = () => {
   return configureStore({
-    reducer: {},
+    reducer: {
+      flow: flowSlice,
+    },
   });
 };
 

@@ -1,46 +1,59 @@
 "use client";
-
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect } from "react";
+import { useTheme } from "next-themes";
 import {
   ReactFlow,
   Background,
   Controls,
   MiniMap,
   addEdge,
-  useNodesState,
-  useEdgesState,
   Connection,
   Edge,
+  applyNodeChanges,
+  applyEdgeChanges,
 } from "@xyflow/react";
-import CustomNode from "@/components/nodes/CustomNode";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import {
+  updateNodes,
+  updateEdges,
+  addEdge as addFlowEdge,
+} from "@/lib/features/flowSlice";
+import OllamaNode from "@/components/nodes/OllamaNode";
+import SDForgeNode from "@/components/nodes/SDForgeNode";
 import "@xyflow/react/dist/style.css";
 
-const nodeTypes = { customNode: CustomNode };
-
-const initialNodes = [
-  {
-    id: "1",
-    type: "customNode",
-    position: { x: 200, y: 100 },
-    data: { label: "Node 1" },
-  },
-  {
-    id: "2",
-    type: "customNode",
-    position: { x: 500, y: 100 },
-    data: { label: "Node 2" },
-  },
-];
-
-const initialEdges: Edge[] = [];
+const nodeTypes = {
+  ollamaNode: OllamaNode,
+  sdForgeNode: SDForgeNode,
+};
 
 const Flow: React.FC = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { theme } = useTheme();
+  const dispatch = useAppDispatch();
+  const nodes = useAppSelector((state) => state.flow.nodes);
+  const edges = useAppSelector((state) => state.flow.edges);
+
+  const onNodesChange = useCallback(
+    (changes: any) => {
+      const updatedNodes = applyNodeChanges(changes, nodes);
+      dispatch(updateNodes(updatedNodes));
+    },
+    [nodes, dispatch]
+  );
+
+  const onEdgesChange = useCallback(
+    (changes: any) => {
+      const updatedEdges = applyEdgeChanges(changes, edges);
+      dispatch(updateEdges(updatedEdges));
+    },
+    [edges, dispatch]
+  );
 
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
-    []
+    (params: Edge | Connection) => {
+      dispatch(addFlowEdge(params as Edge));
+    },
+    [dispatch]
   );
 
   return (
@@ -54,9 +67,7 @@ const Flow: React.FC = () => {
         nodeTypes={nodeTypes}
         fitView
       >
-        <Background color="#f0f0f0" />
-        <Controls />
-        <MiniMap />
+        <Background color={theme === "dark" ? "#fff" : "#000"} />
       </ReactFlow>
     </div>
   );
