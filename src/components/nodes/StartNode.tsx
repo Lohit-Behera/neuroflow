@@ -12,6 +12,7 @@ import {
 import { updateNodeData } from "@/lib/features/flowSlice";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "../ui/scroll-area";
 
 const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const dispatch = useAppDispatch();
@@ -253,6 +254,9 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
     setLoading(true);
     setStreamingOutput("");
     setDialogOpen(true);
+    setFinalImage(null);
+    setStreamingOutput("");
+    setCurrentImage(null);
 
     const firstEdge = edges.find((edge) => edge.source === id);
     if (!firstEdge) {
@@ -285,45 +289,48 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Processing Workflow</DialogTitle>
           </DialogHeader>
+          <ScrollArea className="max-h-[75vh] overflow-y-auto">
+            <div className="space-y-4">
+              <pre className="text-sm whitespace-pre-wrap">
+                {streamingOutput}
+              </pre>
 
-          <div className="space-y-4">
-            <pre className="text-sm whitespace-pre-wrap">{streamingOutput}</pre>
+              {isGenerating && (
+                <div className="space-y-2">
+                  <Progress value={progress} className="w-full" />
+                  <p className="text-sm text-center">{progress}%</p>
+                </div>
+              )}
 
-            {isGenerating && (
-              <div className="space-y-2">
-                <Progress value={progress} className="w-full" />
-                <p className="text-sm text-center">{progress}%</p>
-              </div>
-            )}
+              {(currentImage || finalImage) && (
+                <div className="flex flex-col items-center space-y-4">
+                  <img
+                    src={finalImage || currentImage}
+                    alt="Generated"
+                    className="rounded-lg shadow-lg max-w-full"
+                  />
 
-            {(currentImage || finalImage) && (
-              <div className="flex flex-col items-center space-y-4">
-                <img
-                  src={finalImage || currentImage}
-                  alt="Generated"
-                  className="rounded-lg shadow-lg max-w-full"
-                />
+                  {isGenerating && (
+                    <Button variant="destructive" onClick={handleCancel}>
+                      <X className="w-4 h-4 mr-2" />
+                      Cancel Generation
+                    </Button>
+                  )}
 
-                {isGenerating && (
-                  <Button variant="destructive" onClick={handleCancel}>
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel Generation
-                  </Button>
-                )}
-
-                {finalImage && !isGenerating && (
-                  <Button onClick={handleDownload}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download Image
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
+                  {finalImage && !isGenerating && (
+                    <Button onClick={handleDownload}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Image
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
