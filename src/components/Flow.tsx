@@ -20,9 +20,11 @@ import {
 } from "@/lib/features/flowSlice";
 import OllamaNode from "@/components/nodes/OllamaNode";
 import SDForgeNode from "@/components/nodes/SDForgeNode";
+import StartNode from "@/components/nodes/StartNode";
 import "@xyflow/react/dist/style.css";
 
 const nodeTypes = {
+  startNode: StartNode,
   ollamaNode: OllamaNode,
   sdForgeNode: SDForgeNode,
 };
@@ -60,14 +62,21 @@ const Flow: React.FC = () => {
     <div className="w-full h-full">
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={edges.map((edge) => ({
+          ...edge,
+          id: edge.id || `${edge.source}-${edge.target}`,
+        }))}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
       >
-        <Background color={theme === "dark" ? "#fff" : "#000"} />
+        <Background
+          size={2}
+          gap={22}
+          color={theme === "dark" ? "#fff" : "#000"}
+        />
       </ReactFlow>
     </div>
   );

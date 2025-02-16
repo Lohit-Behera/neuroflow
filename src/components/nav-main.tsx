@@ -16,14 +16,14 @@ export function NavMain({
 }: {
   items: {
     title: string;
-    name: "ollamaNode" | "sdForgeNode";
+    name: "startNode" | "ollamaNode" | "sdForgeNode";
     icon?: LucideIcon;
   }[];
 }) {
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => state.flow.nodes);
 
-  const handleAddNode = (type: "ollamaNode" | "sdForgeNode") => {
+  const handleAddNode = (type: "startNode" | "ollamaNode" | "sdForgeNode") => {
     dispatch(addNode({ type }));
   };
 

@@ -1,10 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import flowSlice from "./features/flowSlice";
+import baseSlice from "./features/baseSlice";
+import ollamaSlice from "./features/ollamaSlice";
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
       flow: flowSlice,
+      base: baseSlice,
+      ollama: ollamaSlice,
     },
   });
 };

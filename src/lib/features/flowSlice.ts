@@ -2,7 +2,15 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Node, Edge } from "@xyflow/react";
 
 // Define node types
-export type NodeType = "ollamaNode" | "sdForgeNode";
+export type NodeType = "startNode" | "ollamaNode" | "sdForgeNode";
+
+interface NodeData {
+  id: string;
+  label: string;
+  model?: string;
+  instructions?: string;
+  prompt?: string;
+}
 
 interface AddNodePayload {
   type: NodeType;
@@ -12,12 +20,14 @@ interface AddNodePayload {
 interface FlowState {
   nodes: Node[];
   edges: Edge[];
+  nodeData: Record<string, NodeData>; // Store data separately
 }
 
 // Define the initial state
 const initialState: FlowState = {
   nodes: [],
   edges: [],
+  nodeData: {},
 };
 
 // Create the slice
@@ -35,9 +45,17 @@ const flowSlice = createSlice({
           y: Math.random() * 300 + 100,
         },
         data: {
-          label: action.payload.type === "ollamaNode" ? "Ollama" : "SD Forge",
+          id,
+          label: action.payload.type,
         },
       };
+
+      // Store node data separately
+      state.nodeData[id] = {
+        id,
+        label: action.payload.type,
+      };
+
       state.nodes.push(newNode);
     },
     updateNodes: (state, action: PayloadAction<Node[]>) => {
@@ -49,8 +67,32 @@ const flowSlice = createSlice({
     addEdge: (state, action: PayloadAction<Edge>) => {
       state.edges.push(action.payload);
     },
+    deleteNode: (state, action: PayloadAction<string>) => {
+      const nodeId = action.payload;
+      state.nodes = state.nodes.filter((node) => node.id !== nodeId);
+      state.edges = state.edges.filter(
+        (edge) => edge.source !== nodeId && edge.target !== nodeId
+      );
+      delete state.nodeData[nodeId]; // Remove data when deleting a node
+    },
+    updateNodeData: (
+      state,
+      action: PayloadAction<{ id: string; data: Partial<NodeData> }>
+    ) => {
+      const { id, data } = action.payload;
+      if (state.nodeData[id]) {
+        state.nodeData[id] = { ...state.nodeData[id], ...data };
+      }
+    },
   },
 });
 
-export const { addNode, updateNodes, updateEdges, addEdge } = flowSlice.actions;
+export const {
+  addNode,
+  updateNodes,
+  updateEdges,
+  addEdge,
+  deleteNode,
+  updateNodeData,
+} = flowSlice.actions;
 export default flowSlice.reducer;

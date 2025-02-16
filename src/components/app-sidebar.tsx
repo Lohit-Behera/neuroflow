@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Image, Type } from "lucide-react";
+import { Image, Play, Type } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavLogo } from "@/components/nav-logo";
@@ -15,6 +15,11 @@ import {
 // This is sample data.
 const data = {
   navMain: [
+    {
+      title: "Start Node",
+      name: "startNode" as const,
+      icon: Play,
+    },
     {
       title: "Ollama Nodes",
       name: "ollamaNode" as const,
