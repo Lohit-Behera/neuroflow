@@ -10,6 +10,13 @@ interface NodeData {
   model?: string;
   instructions?: string;
   prompt?: string;
+  imagePrompt?: string;
+  width?: number;
+  height?: number;
+  samplingSteps?: number;
+  samplingMethod?: string;
+  guidanceScale?: number;
+  schedulerType?: string;
 }
 
 interface AddNodePayload {

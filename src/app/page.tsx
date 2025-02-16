@@ -18,6 +18,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { setBaseUrl } from "@/lib/features/baseSlice";
 import { ReactFlowProvider } from "@xyflow/react";
+import {
+  fetchSamplers,
+  fetchSchedulers,
+  fetchSdModels,
+} from "@/lib/features/sdSlice";
 
 function Home() {
   const dispatch = useAppDispatch();
@@ -30,6 +35,9 @@ function Home() {
   useEffect(() => {
     if (!open) {
       dispatch(fetchOllamaModels());
+      dispatch(fetchSdModels());
+      dispatch(fetchSamplers());
+      dispatch(fetchSchedulers());
     }
   }, [open]);
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import {
   Select,
@@ -13,7 +13,6 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
 import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
-import { toast } from "sonner";
 
 const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const dispatch = useAppDispatch();
@@ -25,12 +24,11 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const [model, setModel] = useState(nodeData.model || "");
   const [instructions, setInstructions] = useState(nodeData.instructions || "");
   const [prompt, setPrompt] = useState(nodeData.prompt || "");
-  const handleSetData = () => {
+
+  useEffect(() => {
     dispatch(updateNodeData({ id, data: { model, instructions, prompt } }));
-    toast.info(
-      `Data Set!\nModel: ${model}\nInstructions: ${instructions}\nPrompt: ${prompt}`
-    );
-  };
+  }, [model, instructions, prompt, dispatch, id]);
+
   return (
     <div className="grid gap-4 p-4 bg-muted shadow-lg rounded-lg border w-[350px]">
       <div className="flex justify-between">
@@ -83,9 +81,7 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
           placeholder="Enter instructions"
         />
       </div>
-      <Button onClick={handleSetData} className="nodrag w-full">
-        Set Data
-      </Button>
+
       <Handle
         type="target"
         position={Position.Left}

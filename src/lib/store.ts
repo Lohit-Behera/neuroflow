@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import flowSlice from "./features/flowSlice";
 import baseSlice from "./features/baseSlice";
 import ollamaSlice from "./features/ollamaSlice";
+import sdSlice from "./features/sdSlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -9,6 +10,7 @@ export const makeStore = () => {
       flow: flowSlice,
       base: baseSlice,
       ollama: ollamaSlice,
+      sd: sdSlice,
     },
   });
 };

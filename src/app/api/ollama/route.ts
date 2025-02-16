@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ollama = new Ollama({ baseUrl, model });
+    const ollama = new Ollama({ baseUrl, model, keepAlive: 0 });
 
     // Combine instructions and input
     const fullPrompt = instructions ? `${instructions}\n\n${input}` : input;
