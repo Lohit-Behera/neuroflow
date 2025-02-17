@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Play, Download, X } from "lucide-react";
@@ -12,6 +12,22 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "../ui/scroll-area";
 import { startWorkflow, handleCancel } from "@/lib/execute/executeWorkflow";
+import { TextShimmer } from "@/components/ui/text-shimmer";
+
+// Create a memoized version of the title component
+const ProcessingTitle = memo(({ processing }: { processing: boolean }) => {
+  if (processing) {
+    return (
+      <TextShimmer className="font-mono" duration={2}>
+        Processing...
+      </TextShimmer>
+    );
+  }
+  return <span>Completed</span>;
+});
+
+// Assign display name for better debugging
+ProcessingTitle.displayName = "ProcessingTitle";
 
 const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const dispatch = useAppDispatch();
@@ -29,6 +45,7 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [canceled, setCanceled] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     let progressInterval: NodeJS.Timeout | null = null;
@@ -104,6 +121,7 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
       setProgress,
       setCanceled,
       setIsGenerating,
+      setProcessing,
     });
   };
 
@@ -129,11 +147,12 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
           }}
         >
           <DialogHeader>
-            <DialogTitle>Processing Workflow</DialogTitle>
+            <DialogTitle>
+              <ProcessingTitle processing={processing} />
+            </DialogTitle>
           </DialogHeader>
-
           <ScrollArea className="max-h-[75vh] overflow-y-auto">
-            <div className="space-y-4">
+            <div className="space-y-4 pr-2">
               <pre className="text-sm whitespace-pre-wrap">
                 {streamingOutput}
               </pre>

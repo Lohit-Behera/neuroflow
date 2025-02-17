@@ -19,6 +19,7 @@ interface ExecuteNodeParams {
   setFinalImage: (image: string | null) => void;
   setCanceled: (canceled: boolean) => void;
   setIsGenerating: (isGenerating: boolean) => void;
+  setProcessing: (completed: boolean) => void;
 }
 
 export const executeNode = async ({
@@ -36,6 +37,7 @@ export const executeNode = async ({
   setFinalImage,
   setCanceled,
   setIsGenerating,
+  setProcessing,
 }: ExecuteNodeParams): Promise<void> => {
   const node = nodes.find((n) => n.id === nodeId);
   if (!node) {
@@ -89,9 +91,11 @@ export const executeNode = async ({
         setFinalImage,
         setCanceled,
         setIsGenerating,
+        setProcessing,
       });
     } else {
       updateStreamingOutput("\n\n🚀 Execution Complete!");
+      setProcessing(false);
     }
   } catch (error: any) {
     updateStreamingOutput("\n" + error.message);
@@ -142,6 +146,7 @@ export const startWorkflow = async ({
   setProgress,
   setCanceled,
   setIsGenerating,
+  setProcessing,
 }: {
   startNodeId: string;
   nodes: Node[];
@@ -158,6 +163,7 @@ export const startWorkflow = async ({
   setProgress: (progress: number) => void;
   setCanceled: (canceled: boolean) => void;
   setIsGenerating: (isGenerating: boolean) => void;
+  setProcessing: (completed: boolean) => void;
 }): Promise<void> => {
   setLoading(true);
   setStreamingOutput("");
@@ -174,6 +180,7 @@ export const startWorkflow = async ({
 
   try {
     // Using a helper function to create the correct updateStreamingOutput function
+    setProcessing(true);
     const updateStreamingOutput =
       createStreamingOutputSetter(setStreamingOutput);
 
@@ -191,6 +198,7 @@ export const startWorkflow = async ({
       setFinalImage,
       setCanceled,
       setIsGenerating,
+      setProcessing,
     });
   } catch (error: any) {
     toast.error(`Workflow execution failed: ${error.message}`);
