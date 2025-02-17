@@ -18,10 +18,12 @@ export function NavMain({
     title: string;
     name: "startNode" | "ollamaNode" | "sdForgeNode";
     icon?: LucideIcon;
+    disabled?: boolean;
   }[];
 }) {
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => state.flow.nodes);
+  console.log(items);
 
   const handleAddNode = (type: "startNode" | "ollamaNode" | "sdForgeNode") => {
     if (
@@ -39,16 +41,23 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              onClick={() => handleAddNode(item.name)}
-              disabled={
-                item.name === "startNode" &&
-                nodes.some((node) => node.type === "startNode")
-              }
-            >
-              {item.icon && <item.icon size={16} />}
-              {item.title}
-            </SidebarMenuButton>
+            {item.name === "startNode" ? (
+              <SidebarMenuButton
+                onClick={() => handleAddNode(item.name)}
+                disabled={nodes.some((node) => node.type === "startNode")}
+              >
+                {item.icon && <item.icon size={16} />}
+                {item.title}
+              </SidebarMenuButton>
+            ) : (
+              <SidebarMenuButton
+                onClick={() => handleAddNode(item.name)}
+                disabled={item.disabled}
+              >
+                {item.icon && <item.icon size={16} />}
+                {item.title}
+              </SidebarMenuButton>
+            )}
           </SidebarMenuItem>
         ))}
       </SidebarMenu>

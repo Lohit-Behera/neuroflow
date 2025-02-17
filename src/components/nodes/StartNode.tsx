@@ -126,12 +126,23 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   };
 
   return (
-    <div className="p-4 bg-muted shadow-lg rounded-lg border">
-      <div className="text-sm font-semibold mb-2">Start Flow</div>
-      <Button className="w-full" onClick={handleStart} disabled={loading}>
-        <Play className="w-4 h-4 mr-2" />
-        {loading ? "Running..." : "Start"}
-      </Button>
+    <div className="p-4 bg-muted shadow-lg rounded-lg border min-w-[250px]">
+      <h3 className="text-sm md:text-lg text-center font-semibold mb-2">
+        Start Workflow
+      </h3>
+      <div className="grid gap-4">
+        <div className="grid gap-2">
+          <h4 className=" mb-2">Start the workflow Manually</h4>
+          <Button
+            className="w-full"
+            onClick={handleStart}
+            disabled={processing}
+          >
+            <Play className="w-4 h-4" />
+            {processing ? "Running..." : "Start"}
+          </Button>
+        </div>
+      </div>
       <Handle
         type="source"
         position={Position.Right}

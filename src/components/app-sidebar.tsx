@@ -11,29 +11,32 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-
-// This is sample data.
-const data = {
-  navMain: [
-    {
-      title: "Start Node",
-      name: "startNode" as const,
-      icon: Play,
-    },
-    {
-      title: "Ollama Nodes",
-      name: "ollamaNode" as const,
-      icon: Type,
-    },
-    {
-      title: "Stable Diffusion Nodes",
-      name: "sdForgeNode" as const,
-      icon: Image,
-    },
-  ],
-};
+import { useAppSelector } from "@/lib/hooks";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const ollama = useAppSelector((state) => state.base.ollama);
+  const sdorge = useAppSelector((state) => state.base.sdforge);
+  const data = {
+    navMain: [
+      {
+        title: "Start Node",
+        name: "startNode" as const,
+        icon: Play,
+      },
+      {
+        title: "Ollama Nodes",
+        name: "ollamaNode" as const,
+        icon: Type,
+        disabled: !ollama.useOllama,
+      },
+      {
+        title: "Stable Diffusion Nodes",
+        name: "sdForgeNode" as const,
+        icon: Image,
+        disabled: !sdorge.useSdforge,
+      },
+    ],
+  };
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
