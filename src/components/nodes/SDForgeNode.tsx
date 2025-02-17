@@ -18,7 +18,9 @@ import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
 const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const samplers = useAppSelector((state) => state.sd.samplers);
   const schedulers = useAppSelector((state) => state.sd.schedulers);
+  const allModels = useAppSelector((state) => state.sd.models);
   const [imagePrompt, setImagePrompt] = useState<string>();
+  const [model, setModel] = useState<string>();
   const [width, setWidth] = useState<number>(512);
   const [height, setHeight] = useState<number>(512);
   const [samplingSteps, setSamplingSteps] = useState<number>(20);
@@ -78,6 +80,25 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
           className="nodrag px-2 py-1 border rounded w-full"
           placeholder="Enter image prompt"
         />
+      </div>
+      <div className="grid gap-2">
+        <Label className="text-xs font-semibold">Model</Label>
+        <Select
+          value={model}
+          onValueChange={(value) => setModel(value)}
+          defaultValue={model}
+        >
+          <SelectTrigger className="nodrag px-2 py-1 border rounded w-full">
+            <SelectValue placeholder="Select model" />
+          </SelectTrigger>
+          <SelectContent>
+            {allModels.map((model) => (
+              <SelectItem key={model.model_name} value={model.model_name}>
+                {model.model_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div className="grid gap-2">

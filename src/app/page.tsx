@@ -48,7 +48,11 @@ function Home() {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => {
+            e.preventDefault();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               Set Base URL for Ollama and Stable Diffusion

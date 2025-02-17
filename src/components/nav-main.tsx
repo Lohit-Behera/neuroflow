@@ -24,6 +24,12 @@ export function NavMain({
   const nodes = useAppSelector((state) => state.flow.nodes);
 
   const handleAddNode = (type: "startNode" | "ollamaNode" | "sdForgeNode") => {
+    if (
+      type === "startNode" &&
+      nodes.some((node) => node.type === "startNode")
+    ) {
+      return; // Prevent adding another start node
+    }
     dispatch(addNode({ type }));
   };
 
@@ -33,7 +39,13 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton onClick={() => handleAddNode(item.name)}>
+            <SidebarMenuButton
+              onClick={() => handleAddNode(item.name)}
+              disabled={
+                item.name === "startNode" &&
+                nodes.some((node) => node.type === "startNode")
+              }
+            >
               {item.icon && <item.icon size={16} />}
               {item.title}
             </SidebarMenuButton>

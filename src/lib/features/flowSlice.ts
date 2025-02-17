@@ -43,6 +43,12 @@ const flowSlice = createSlice({
   initialState,
   reducers: {
     addNode: (state, action: PayloadAction<AddNodePayload>) => {
+      if (
+        action.payload.type === "startNode" &&
+        state.nodes.some((node) => node.type === "startNode")
+      ) {
+        return; // Prevent adding another start node
+      }
       const id = `${state.nodes.length + 1}`;
       const newNode: Node = {
         id,

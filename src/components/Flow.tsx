@@ -22,6 +22,7 @@ import OllamaNode from "@/components/nodes/OllamaNode";
 import SDForgeNode from "@/components/nodes/SDForgeNode";
 import StartNode from "@/components/nodes/StartNode";
 import "@xyflow/react/dist/style.css";
+import { ZoomSlider } from "@/components/zoom-slider";
 
 const nodeTypes = {
   startNode: StartNode,
@@ -53,9 +54,15 @@ const Flow: React.FC = () => {
 
   const onConnect = useCallback(
     (params: Edge | Connection) => {
-      dispatch(addFlowEdge(params as Edge));
+      const isSourceConnected = edges.some(
+        (edge) => edge.source === params.source
+      );
+
+      if (!isSourceConnected) {
+        dispatch(addFlowEdge(params as Edge));
+      }
     },
-    [dispatch]
+    [edges, dispatch]
   );
 
   return (
@@ -72,11 +79,8 @@ const Flow: React.FC = () => {
         nodeTypes={nodeTypes}
         fitView
       >
-        <Background
-          size={2}
-          gap={22}
-          color={theme === "dark" ? "#fff" : "#000"}
-        />
+        <Background size={2} gap={22} />
+        <ZoomSlider />
       </ReactFlow>
     </div>
   );
