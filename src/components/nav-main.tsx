@@ -23,7 +23,6 @@ export function NavMain({
 }) {
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => state.flow.nodes);
-  console.log(items);
 
   const handleAddNode = (type: "startNode" | "ollamaNode" | "sdForgeNode") => {
     if (

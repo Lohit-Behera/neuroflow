@@ -22,6 +22,7 @@ import {
   fetchSdModels,
 } from "@/lib/features/sdSlice";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 const ModeToggle = dynamic(
   () => import("@/components/mode-toggle").then((mod) => mod.ModeToggle),
@@ -34,11 +35,20 @@ function Header() {
   const dispatch = useAppDispatch();
   const ollama = useAppSelector((state) => state.base.ollama);
   const sdforge = useAppSelector((state) => state.base.sdforge);
+  const ollamaStatus = useAppSelector((state) => state.ollama.modelsStatus);
+  const modelsStatus = useAppSelector((state) => state.sd.modelsStatus);
+  const samplersStatus = useAppSelector((state) => state.sd.samplersStatus);
+  const schedulersStatus = useAppSelector((state) => state.sd.schedulersStatus);
+
   const [open, setOpen] = useState(true);
   const [ollamaBaseUrl, setOllamaBaseUrl] = useState(ollama.baseUrl);
   const [sdforgeBaseUrl, setSdforgeBaseUrl] = useState(sdforge.baseUrl);
   const [useOllama, setUseOllama] = useState(ollama.useOllama);
   const [useSdforge, setUseSdforge] = useState(sdforge.useSdforge);
+
+  const [errorOllama, setErrorOllama] = useState(false);
+  const [errorSdforge, setErrorSdforge] = useState(false);
+  const [errorOpen, setErrorOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -53,6 +63,32 @@ function Header() {
     }
   }, [open]);
 
+  useEffect(() => {
+    let newUseOllama = useOllama;
+    let newUseSdforge = useSdforge;
+    let hasError = false;
+
+    if (ollamaStatus === "failed") {
+      setErrorOllama(true);
+      newUseOllama = false;
+      hasError = true;
+    }
+    if (
+      modelsStatus === "failed" ||
+      samplersStatus === "failed" ||
+      schedulersStatus === "failed"
+    ) {
+      setErrorSdforge(true);
+      newUseSdforge = false;
+      hasError = true;
+    }
+
+    if (hasError) {
+      dispatch(setUse({ useOllama: newUseOllama, useSdforge: newUseSdforge }));
+      setErrorOpen(true);
+    }
+  }, [ollamaStatus, modelsStatus, samplersStatus, schedulersStatus]);
+
   const handleSave = () => {
     dispatch(setBaseUrl({ ollamaBaseUrl, sdforgeBaseUrl }));
     dispatch(setUse({ useOllama, useSdforge }));
@@ -60,7 +96,7 @@ function Header() {
   };
   return (
     <>
-      <header className="z-20 w-full sticky top-0 p-2 backdrop-blur bg-background">
+      <header className="z-20 w-full sticky top-0 p-2 backdrop-blur bg-background/10">
         <nav className="flex justify-between space-x-2">
           <SidebarTrigger />
           <div className="flex items-center justify-center space-x-2">
@@ -73,7 +109,7 @@ function Header() {
       </header>
 
       {/* Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={() => setOpen(false)}>
         <DialogContent
           onInteractOutside={(e) => {
             e.preventDefault();
@@ -129,6 +165,34 @@ function Header() {
               Save changes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorOpen} onOpenChange={() => setErrorOpen(false)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+            <DialogDescription className="gap-2">
+              {errorOllama && (
+                <p>
+                  Ollama Error:{" "}
+                  <b>Check Ollama is running and Base URL and try again</b>
+                </p>
+              )}
+              {errorSdforge && (
+                <p>
+                  Stable Diffusion Error:{" "}
+                  <b>
+                    Check Stable Diffusion is running and Base URL and try again
+                  </b>
+                </p>
+              )}
+              <p>
+                For try again, click on <b>Set Details</b>
+              </p>
+            </DialogDescription>
+          </DialogHeader>
         </DialogContent>
       </Dialog>
     </>
