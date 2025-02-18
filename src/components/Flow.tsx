@@ -1,16 +1,14 @@
 "use client";
-import React, { useCallback, useEffect } from "react";
-import { useTheme } from "next-themes";
+import React, { useCallback } from "react";
 import {
   ReactFlow,
   Background,
-  Controls,
-  MiniMap,
-  addEdge,
   Connection,
   Edge,
   applyNodeChanges,
   applyEdgeChanges,
+  EdgeChange,
+  NodeChange,
 } from "@xyflow/react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import {
@@ -31,13 +29,12 @@ const nodeTypes = {
 };
 
 const Flow: React.FC = () => {
-  const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => state.flow.nodes);
   const edges = useAppSelector((state) => state.flow.edges);
 
   const onNodesChange = useCallback(
-    (changes: any) => {
+    (changes: NodeChange[]) => {
       const updatedNodes = applyNodeChanges(changes, nodes);
       dispatch(updateNodes(updatedNodes));
     },
@@ -45,7 +42,7 @@ const Flow: React.FC = () => {
   );
 
   const onEdgesChange = useCallback(
-    (changes: any) => {
+    (changes: EdgeChange[]) => {
       const updatedEdges = applyEdgeChanges(changes, edges);
       dispatch(updateEdges(updatedEdges));
     },

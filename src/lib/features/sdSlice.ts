@@ -14,7 +14,7 @@ interface Model {
 interface Sampler {
   name: string;
   aliases: string[];
-  options: any;
+  options: unknown;
 }
 
 interface Scheduler {

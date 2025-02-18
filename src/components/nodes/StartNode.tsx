@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Play, Download, X } from "lucide-react";
@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "../ui/scroll-area";
 import { startWorkflow, handleCancel } from "@/lib/execute/executeWorkflow";
 import { TextShimmer } from "@/components/ui/text-shimmer";
+import Image from "next/image";
 
 // Create a memoized version of the title component
 const ProcessingTitle = memo(({ processing }: { processing: boolean }) => {
@@ -39,7 +40,6 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
 
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [streamingOutput, setStreamingOutput] = useState("");
-  const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [finalImage, setFinalImage] = useState<string | null>(null);
@@ -90,7 +90,7 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   }, [isGenerating, canceled, sdforgeBaseUrl]);
 
   const handleCancelGeneration = () => {
-    handleCancel(sdforgeBaseUrl, setCanceled, setIsGenerating, setLoading);
+    handleCancel(sdforgeBaseUrl, setCanceled, setIsGenerating);
   };
 
   const handleDownload = () => {
@@ -113,7 +113,6 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
       ollamaBaseUrl,
       sdforgeBaseUrl,
       dispatch,
-      setLoading,
       setStreamingOutput,
       setDialogOpen,
       setFinalImage,
@@ -177,8 +176,13 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
 
               {(currentImage || finalImage) && (
                 <div className="flex flex-col items-center space-y-4">
-                  <img
-                    src={finalImage?.toString() || currentImage?.toString()}
+                  <Image
+                    src={
+                      finalImage?.toString() ||
+                      (currentImage?.toString() as string)
+                    }
+                    width={512}
+                    height={512}
                     alt="Generated"
                     className="rounded-lg shadow-lg max-w-full"
                   />

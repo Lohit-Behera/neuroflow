@@ -19,14 +19,13 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const id = data["id"] as string;
 
   const ollamaModels = useAppSelector((state) => state.ollama.models);
-  const nodeData = useAppSelector((state) => state.flow.nodeData[id]) || {};
 
-  const [model, setModel] = useState(nodeData.model || "");
-  const [instructions, setInstructions] = useState(nodeData.instructions || "");
-  const [prompt, setPrompt] = useState(nodeData.prompt || "");
+  const [model, setModel] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
-    dispatch(updateNodeData({ id, data: { model, instructions, prompt } }));
+    dispatch(updateNodeData({ id, data: { id, model, instructions, prompt } }));
   }, [model, instructions, prompt, dispatch, id]);
 
   return (

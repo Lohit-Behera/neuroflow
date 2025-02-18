@@ -61,7 +61,7 @@ function Header() {
         dispatch(fetchSchedulers());
       }
     }
-  }, [open]);
+  }, [open, dispatch, ollama.useOllama, sdforge.useSdforge]);
 
   useEffect(() => {
     let newUseOllama = useOllama;
@@ -87,7 +87,15 @@ function Header() {
       dispatch(setUse({ useOllama: newUseOllama, useSdforge: newUseSdforge }));
       setErrorOpen(true);
     }
-  }, [ollamaStatus, modelsStatus, samplersStatus, schedulersStatus]);
+  }, [
+    ollamaStatus,
+    modelsStatus,
+    samplersStatus,
+    schedulersStatus,
+    dispatch,
+    useOllama,
+    useSdforge,
+  ]);
 
   const handleSave = () => {
     dispatch(setBaseUrl({ ollamaBaseUrl, sdforgeBaseUrl }));

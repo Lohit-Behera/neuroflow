@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Plus, type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { addNode } from "@/lib/features/flowSlice";
 import {

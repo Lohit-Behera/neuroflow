@@ -2,6 +2,7 @@ import { Node, Edge } from "@xyflow/react";
 
 // Base node data that all nodes should have
 export interface BaseNodeData {
+  id: string;
   label?: string;
   description?: string;
   output?: string | null;
@@ -21,8 +22,8 @@ export interface OllamaNodeData extends BaseNodeData {
 
 // SDForge node specific data
 export interface SDForgeNodeData extends BaseNodeData {
-  model: string;
-  imagePrompt: string;
+  model: string | undefined;
+  prompt: string;
   negativePrompt?: string;
   width: number;
   height: number;
@@ -33,11 +34,26 @@ export interface SDForgeNodeData extends BaseNodeData {
 }
 
 // Union type for all possible node data types
-export type NodeData = OllamaNodeData | SDForgeNodeData;
+export type NodeData = OllamaNodeData | SDForgeNodeData | BaseNodeData;
 
 // Type for node data lookup by node ID
 export interface NodeDataMap {
   [key: string]: NodeData;
+}
+
+// Type guards to determine node type
+export function isOllamaNodeData(data: NodeData): data is OllamaNodeData {
+  return (
+    (data as OllamaNodeData).prompt !== undefined &&
+    (data as OllamaNodeData).instructions !== undefined
+  );
+}
+
+export function isSDForgeNodeData(data: NodeData): data is SDForgeNodeData {
+  return (
+    (data as SDForgeNodeData).prompt !== undefined &&
+    (data as SDForgeNodeData).samplingSteps !== undefined
+  );
 }
 
 // Flow state in the Redux store

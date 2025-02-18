@@ -19,7 +19,7 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const samplers = useAppSelector((state) => state.sd.samplers);
   const schedulers = useAppSelector((state) => state.sd.schedulers);
   const allModels = useAppSelector((state) => state.sd.models);
-  const [imagePrompt, setImagePrompt] = useState<string>();
+  const [prompt, setPrompt] = useState<string>("");
   const [model, setModel] = useState<string>();
   const [width, setWidth] = useState<number>(512);
   const [height, setHeight] = useState<number>(512);
@@ -36,7 +36,9 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       updateNodeData({
         id,
         data: {
-          imagePrompt,
+          id,
+          model,
+          prompt,
           width,
           height,
           samplingSteps,
@@ -47,7 +49,9 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       })
     );
   }, [
-    imagePrompt,
+    id,
+    model,
+    prompt,
     width,
     height,
     samplingSteps,
@@ -55,7 +59,6 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
     guidanceScale,
     schedulerType,
     dispatch,
-    id,
   ]);
 
   return (
@@ -75,8 +78,8 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       <div className="grid gap-2">
         <Label className="text-xs font-semibold">Image Prompt</Label>
         <Textarea
-          value={imagePrompt}
-          onChange={(e) => setImagePrompt(e.target.value)}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
           className="nodrag px-2 py-1 border rounded w-full"
           placeholder="Enter image prompt"
         />

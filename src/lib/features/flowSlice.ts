@@ -1,23 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Node, Edge } from "@xyflow/react";
+import { NodeData, NodeDataMap } from "@/types/flowTypes";
 
 // Define node types
 export type NodeType = "startNode" | "ollamaNode" | "sdForgeNode";
-
-interface NodeData {
-  id: string;
-  label: string;
-  model?: string;
-  instructions?: string;
-  prompt?: string;
-  imagePrompt?: string;
-  width?: number;
-  height?: number;
-  samplingSteps?: number;
-  samplingMethod?: string;
-  guidanceScale?: number;
-  schedulerType?: string;
-}
 
 interface AddNodePayload {
   type: NodeType;
@@ -27,14 +13,14 @@ interface AddNodePayload {
 interface FlowState {
   nodes: Node[];
   edges: Edge[];
-  nodeData: Record<string, NodeData>; // Store data separately
+  nodeData: NodeDataMap;
 }
 
 // Define the initial state
 const initialState: FlowState = {
   nodes: [],
   edges: [],
-  nodeData: {},
+  nodeData: {} as NodeDataMap,
 };
 
 // Create the slice
@@ -90,7 +76,7 @@ const flowSlice = createSlice({
     },
     updateNodeData: (
       state,
-      action: PayloadAction<{ id: string; data: Partial<NodeData> }>
+      action: PayloadAction<{ id: string; data: NodeData }>
     ) => {
       const { id, data } = action.payload;
       if (state.nodeData[id]) {

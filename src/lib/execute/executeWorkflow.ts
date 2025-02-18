@@ -3,13 +3,14 @@ import { executeOllamaNode } from "./executeOllamaNode";
 import { executeSDForgeNode } from "./executeSDForgeNode";
 import { AppDispatch } from "@/lib/store";
 import { Node, Edge } from "@xyflow/react";
+import { NodeDataMap } from "@/types/flowTypes";
 
 interface ExecuteNodeParams {
   nodeId: string;
   input?: string;
   nodes: Node[];
   edges: Edge[];
-  nodeData: Record<string, any>;
+  nodeData: NodeDataMap;
   ollamaBaseUrl: string;
   sdforgeBaseUrl: string;
   dispatch: AppDispatch;
@@ -97,16 +98,19 @@ export const executeNode = async ({
       updateStreamingOutput("\n\n🚀 Execution Complete!");
       setProcessing(false);
     }
-  } catch (error: any) {
-    updateStreamingOutput("\n" + error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      updateStreamingOutput("\n" + error.message);
+    } else {
+      updateStreamingOutput("\n" + error);
+    }
   }
 };
 
 export const handleCancel = async (
   sdforgeBaseUrl: string,
   setCanceled: (canceled: boolean) => void,
-  setIsGenerating: (isGenerating: boolean) => void,
-  setLoading: (loading: boolean) => void
+  setIsGenerating: (isGenerating: boolean) => void
 ): Promise<void> => {
   try {
     await fetch(`${sdforgeBaseUrl}/sdapi/v1/interrupt`, {
@@ -114,9 +118,8 @@ export const handleCancel = async (
     });
     setCanceled(true);
     setIsGenerating(false);
-    setLoading(false);
     toast.success("Generation canceled");
-  } catch (error) {
+  } catch {
     toast.error("Failed to cancel generation");
   }
 };
@@ -138,7 +141,6 @@ export const startWorkflow = async ({
   ollamaBaseUrl,
   sdforgeBaseUrl,
   dispatch,
-  setLoading,
   setStreamingOutput,
   setDialogOpen,
   setFinalImage,
@@ -151,11 +153,10 @@ export const startWorkflow = async ({
   startNodeId: string;
   nodes: Node[];
   edges: Edge[];
-  nodeData: Record<string, any>;
+  nodeData: NodeDataMap;
   ollamaBaseUrl: string;
   sdforgeBaseUrl: string;
   dispatch: AppDispatch;
-  setLoading: (loading: boolean) => void;
   setStreamingOutput: React.Dispatch<React.SetStateAction<string>>;
   setDialogOpen: (open: boolean) => void;
   setFinalImage: (image: string | null) => void;
@@ -165,7 +166,6 @@ export const startWorkflow = async ({
   setIsGenerating: (isGenerating: boolean) => void;
   setProcessing: (completed: boolean) => void;
 }): Promise<void> => {
-  setLoading(true);
   setStreamingOutput("");
   setDialogOpen(true);
   setFinalImage(null);
@@ -174,7 +174,7 @@ export const startWorkflow = async ({
   const firstEdge = edges.find((edge) => edge.source === startNodeId);
   if (!firstEdge) {
     toast.warning("No nodes connected to Start Node!");
-    setLoading(false);
+    setProcessing(false);
     return;
   }
 
@@ -200,9 +200,13 @@ export const startWorkflow = async ({
       setIsGenerating,
       setProcessing,
     });
-  } catch (error: any) {
-    toast.error(`Workflow execution failed: ${error.message}`);
+  } catch (error) {
+    if (error instanceof Error) {
+      toast.error(`Workflow execution failed: ${error.message}`);
+    } else {
+      toast.error(`Workflow execution failed: ${error}`);
+    }
   } finally {
-    setLoading(false);
+    setProcessing(false);
   }
 };
