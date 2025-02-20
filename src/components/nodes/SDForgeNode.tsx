@@ -16,9 +16,16 @@ import { Trash2 } from "lucide-react";
 import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
 
 const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
+  const dispatch = useAppDispatch();
+  const id = data["id"] as string;
+
   const samplers = useAppSelector((state) => state.sd.samplers);
   const schedulers = useAppSelector((state) => state.sd.schedulers);
   const allModels = useAppSelector((state) => state.sd.models);
+
+  const edges = useAppSelector((state) => state.flow.edges);
+  const nodeData = useAppSelector((state) => state.flow.nodeData);
+
   const [prompt, setPrompt] = useState<string>("");
   const [model, setModel] = useState<string>();
   const [width, setWidth] = useState<number>(512);
@@ -27,9 +34,20 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const [samplingMethod, setSamplingMethod] = useState<string>("Euler");
   const [guidanceScale, setGuidanceScale] = useState<number>(7.5);
   const [schedulerType, setSchedulerType] = useState<string>("automatic");
+  const [disabledPrompt, setDisabledPrompt] = useState(false);
 
-  const dispatch = useAppDispatch();
-  const id = data["id"] as string;
+  useEffect(() => {
+    const edge = edges.find((e) => e.target === id);
+    const previousNode = nodeData[edge?.source as string];
+    if (previousNode) {
+      if (previousNode.label === "ollamaNode") {
+        setDisabledPrompt(true);
+        setPrompt("");
+      } else {
+        setDisabledPrompt(false);
+      }
+    }
+  }, [edges, id]);
 
   useEffect(() => {
     dispatch(
@@ -78,6 +96,7 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       <div className="grid gap-2">
         <Label className="text-xs font-semibold">Image Prompt</Label>
         <Textarea
+          disabled={disabledPrompt}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="nodrag px-2 py-1 border rounded w-full"

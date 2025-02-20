@@ -31,9 +31,6 @@ export const executeSDForgeNode = async ({
   setIsGenerating,
 }: ExecuteSDForgeNodeParams): Promise<string> => {
   const targetNode = nodeData[nodeId];
-  console.log("targetNode");
-  console.log(targetNode);
-  console.log(isSDForgeNodeData(targetNode));
 
   if (!targetNode) {
     toast.warning(`Node ${nodeId} not found!`);

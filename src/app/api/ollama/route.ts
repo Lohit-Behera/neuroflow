@@ -4,7 +4,6 @@ import { Ollama } from "@langchain/ollama";
 export async function POST(req: NextRequest) {
   try {
     const { input, instructions, model, baseUrl } = await req.json();
-    console.log(input, instructions, model, baseUrl);
 
     if (!input || !model || !baseUrl) {
       return NextResponse.json(

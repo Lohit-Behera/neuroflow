@@ -14,6 +14,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { startWorkflow, handleCancel } from "@/lib/execute/executeWorkflow";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 import Image from "next/image";
+import { BorderTrail } from "@/components/ui/border-trail";
 
 // Create a memoized version of the title component
 const ProcessingTitle = memo(({ processing }: { processing: boolean }) => {
@@ -151,11 +152,20 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
 
       <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
-          className="max-w-3xl max-h-[90vh] overflow-hidden"
+          className="max-w-3xl max-h-[90vh] min-h-56 overflow-hidden"
           onInteractOutside={(e) => {
             e.preventDefault();
           }}
         >
+          {processing && (
+            <BorderTrail
+              style={{
+                background:
+                  "linear-gradient(to left, #7f43de, #6d28d9, #7f43de)",
+              }}
+              size={150}
+            />
+          )}
           <DialogHeader>
             <DialogTitle>
               <ProcessingTitle processing={processing} />

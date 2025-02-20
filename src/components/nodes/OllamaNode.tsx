@@ -19,10 +19,26 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const id = data["id"] as string;
 
   const ollamaModels = useAppSelector((state) => state.ollama.models);
+  const edges = useAppSelector((state) => state.flow.edges);
+  const nodeData = useAppSelector((state) => state.flow.nodeData);
 
   const [model, setModel] = useState("");
   const [instructions, setInstructions] = useState("");
   const [prompt, setPrompt] = useState("");
+  const [disabledPrompt, setDisabledPrompt] = useState(false);
+
+  useEffect(() => {
+    const edge = edges.find((e) => e.target === id);
+    const previousNode = nodeData[edge?.source as string];
+    if (previousNode) {
+      if (previousNode.label === "ollamaNode") {
+        setDisabledPrompt(true);
+        setPrompt("");
+      } else {
+        setDisabledPrompt(false);
+      }
+    }
+  }, [edges, id]);
 
   useEffect(() => {
     dispatch(updateNodeData({ id, data: { id, model, instructions, prompt } }));
@@ -62,6 +78,7 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       <div className="grid gap-2">
         <Label htmlFor="prompt">Prompt</Label>
         <Textarea
+          disabled={disabledPrompt}
           id="prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
