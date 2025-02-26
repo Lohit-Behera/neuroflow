@@ -13,6 +13,7 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
 import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
+import { Input } from "../ui/input";
 
 const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const dispatch = useAppDispatch();
@@ -25,24 +26,34 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const [model, setModel] = useState("");
   const [instructions, setInstructions] = useState("");
   const [prompt, setPrompt] = useState("");
-  const [disabledPrompt, setDisabledPrompt] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [disabled, setDisabled] = useState({
+    prompt: false,
+    file: false,
+  });
 
   useEffect(() => {
     const edge = edges.find((e) => e.target === id);
     const previousNode = nodeData[edge?.source as string];
     if (previousNode) {
       if (previousNode.label === "ollamaNode") {
-        setDisabledPrompt(true);
+        setDisabled({ ...disabled, prompt: true });
         setPrompt("");
+      } else if (previousNode.label === "sdForgeNode") {
+        setDisabled({ prompt: true, file: true });
+        setPrompt("");
+        setFile(null);
       } else {
-        setDisabledPrompt(false);
+        setDisabled({ prompt: false, file: false });
       }
     }
   }, [edges, id]);
 
   useEffect(() => {
-    dispatch(updateNodeData({ id, data: { id, model, instructions, prompt } }));
-  }, [model, instructions, prompt, dispatch, id]);
+    dispatch(
+      updateNodeData({ id, data: { id, model, instructions, prompt, file } })
+    );
+  }, [model, instructions, prompt, dispatch, id, file]);
 
   return (
     <div className="grid gap-4 p-4 bg-muted shadow-lg rounded-lg border w-[350px]">
@@ -78,7 +89,7 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       <div className="grid gap-2">
         <Label htmlFor="prompt">Prompt</Label>
         <Textarea
-          disabled={disabledPrompt}
+          disabled={disabled.prompt}
           id="prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -95,6 +106,21 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
           onChange={(e) => setInstructions(e.target.value)}
           className="nodrag px-2 py-1 border rounded w-full"
           placeholder="Enter instructions"
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="filedata">File</Label>
+        <Input
+          id="filedata"
+          type="file"
+          disabled={disabled.file}
+          onChange={(e) => {
+            setFile(e.target.files ? e.target.files[0] : null);
+            setPrompt("");
+            setDisabled({ ...disabled, prompt: true });
+          }}
+          className="nodrag "
+          placeholder="Add file"
         />
       </div>
 

@@ -26,19 +26,21 @@ export const executeOllamaNode = async ({
     return "";
   }
   if (isOllamaNodeData(targetNode)) {
-    const { model, instructions, prompt } = targetNode;
+    const { model, instructions, prompt, file } = targetNode;
     updateStreamingOutput(`\nExecuting Ollama Node: ${nodeId}...\n`);
 
     try {
+      const formData = new FormData();
+      formData.append("input", input || prompt || "");
+      formData.append("instructions", instructions || "");
+      formData.append("model", model || "");
+      formData.append("baseUrl", ollamaBaseUrl || "");
+      if (file) {
+        formData.append("file", file);
+      }
       const res = await fetch("/api/ollama", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          input: input || prompt,
-          instructions,
-          model,
-          baseUrl: ollamaBaseUrl,
-        }),
+        body: formData,
       });
 
       if (!res.body) throw new Error("No response body");

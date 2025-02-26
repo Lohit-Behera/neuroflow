@@ -14,6 +14,7 @@ export interface OllamaNodeData extends BaseNodeData {
   model: string;
   prompt: string;
   instructions: string;
+  file?: File | null;
   temperature?: number;
   topK?: number;
   topP?: number;
