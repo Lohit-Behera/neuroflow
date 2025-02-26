@@ -26,17 +26,26 @@ export const executeOllamaNode = async ({
     return "";
   }
   if (isOllamaNodeData(targetNode)) {
-    const { model, instructions, prompt, file } = targetNode;
+    const { model, instructions, prompt, file, previousNodeOutputType } =
+      targetNode;
+
     updateStreamingOutput(`\nExecuting Ollama Node: ${nodeId}...\n`);
 
     try {
       const formData = new FormData();
-      formData.append("input", input || prompt || "");
+      if (!previousNodeOutputType) {
+        formData.append("input", prompt || "");
+      } else if (previousNodeOutputType === "text") {
+        formData.append("input", input);
+      }
       formData.append("instructions", instructions || "");
       formData.append("model", model || "");
       formData.append("baseUrl", ollamaBaseUrl || "");
       if (file) {
         formData.append("file", file);
+      }
+      if (previousNodeOutputType && previousNodeOutputType === "image") {
+        formData.append("image", input);
       }
       const res = await fetch("/api/ollama", {
         method: "POST",

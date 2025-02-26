@@ -65,6 +65,17 @@ const flowSlice = createSlice({
     },
     addEdge: (state, action: PayloadAction<Edge>) => {
       state.edges.push(action.payload);
+      const { source, target } = action.payload;
+      const sourceData = state.nodeData[source];
+      const targetData = state.nodeData[target];
+      if (sourceData.label !== "startNode") {
+        const outputType = sourceData.label === "ollamaNode" ? "text" : "image";
+        state.nodeData[target] = {
+          ...targetData,
+          previousNodeOutputType: outputType,
+          previousNodeLabel: sourceData.label,
+        };
+      }
     },
     deleteNode: (state, action: PayloadAction<string>) => {
       const nodeId = action.payload;

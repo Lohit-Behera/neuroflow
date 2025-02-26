@@ -10,8 +10,7 @@ export async function POST(req: NextRequest) {
     const model = formData.get("model") as string;
     const baseUrl = formData.get("baseUrl") as string;
     const file = formData.get("file") as File | null;
-    const sdImage = formData.get("sdImage") as string | null;
-    console.log(file);
+    const outputImage = formData.get("image") as string | null;
 
     if (!model || !baseUrl) {
       return NextResponse.json(
@@ -43,8 +42,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (sdImage) {
-      images = [sdImage];
+    if (outputImage) {
+      images = [outputImage];
     }
 
     // Send request to Ollama

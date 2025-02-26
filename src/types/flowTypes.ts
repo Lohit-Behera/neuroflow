@@ -6,7 +6,8 @@ export interface BaseNodeData {
   label?: string;
   description?: string;
   output?: string | null;
-  outputType?: "text" | "image";
+  previousNodeOutputType?: "text" | "image";
+  previousNodeLabel?: string;
 }
 
 // Ollama node specific data
