@@ -94,6 +94,11 @@ const flowSlice = createSlice({
         state.nodeData[id] = { ...state.nodeData[id], ...data };
       }
     },
+    deleteAll: (state) => {
+      state.nodes = [];
+      state.edges = [];
+      state.nodeData = {};
+    },
   },
 });
 
@@ -104,5 +109,6 @@ export const {
   addEdge,
   deleteNode,
   updateNodeData,
+  deleteAll,
 } = flowSlice.actions;
 export default flowSlice.reducer;

@@ -23,6 +23,7 @@ import {
 } from "@/lib/features/sdSlice";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { deleteAll } from "@/lib/features/flowSlice";
 
 const ModeToggle = dynamic(
   () => import("@/components/mode-toggle").then((mod) => mod.ModeToggle),
@@ -110,6 +111,9 @@ function Header() {
           <div className="flex items-center justify-center space-x-2">
             <Button onClick={() => setOpen(true)} variant="outline">
               Set Details
+            </Button>
+            <Button onClick={() => dispatch(deleteAll())} variant="destructive">
+              Delete All
             </Button>
             <ModeToggle />
           </div>
