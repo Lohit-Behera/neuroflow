@@ -2,6 +2,7 @@ import { AppDispatch } from "@/lib/store";
 import { updateNodeData } from "@/lib/features/flowSlice";
 import { toast } from "sonner";
 import { NodeDataMap, isOllamaNodeData } from "@/types/flowTypes";
+import { OllamaFileStorage } from "@/components/nodes/OllamaNode";
 
 interface ExecuteOllamaNodeParams {
   nodeId: string;
@@ -42,7 +43,9 @@ export const executeOllamaNode = async ({
       formData.append("model", model || "");
       formData.append("baseUrl", ollamaBaseUrl || "");
       if (file) {
-        formData.append("file", file);
+        const ollamaFile = OllamaFileStorage.getFile(nodeId);
+        console.log(ollamaFile);
+        formData.append("file", ollamaFile || "");
       }
       if (previousNodeOutputType && previousNodeOutputType === "image") {
         formData.append("image", input);

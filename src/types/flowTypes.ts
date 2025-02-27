@@ -1,4 +1,5 @@
 import { Node, Edge } from "@xyflow/react";
+import { SerializableFileInfo } from "@/components/nodes/OllamaNode";
 
 // Base node data that all nodes should have
 export interface BaseNodeData {
@@ -15,7 +16,7 @@ export interface OllamaNodeData extends BaseNodeData {
   model: string;
   prompt: string;
   instructions: string;
-  file?: File | null;
+  file?: SerializableFileInfo | null;
   temperature?: number;
   topK?: number;
   topP?: number;

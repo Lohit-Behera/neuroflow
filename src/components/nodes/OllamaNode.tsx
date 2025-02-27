@@ -15,6 +15,31 @@ import { Trash2 } from "lucide-react";
 import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
 import { Input } from "../ui/input";
 
+export const OllamaFileStorage = {
+  files: {} as Record<string, File>,
+
+  storeFile: (file: File, id: string): void => {
+    OllamaFileStorage.files[id] = file;
+  },
+
+  getFile: (id: string): File | null => {
+    return OllamaFileStorage.files[id] || null;
+  },
+
+  removeFile: (id: string): void => {
+    if (OllamaFileStorage.files[id]) {
+      delete OllamaFileStorage.files[id];
+    }
+  },
+};
+
+export interface SerializableFileInfo {
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
+}
+
 const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const dispatch = useAppDispatch();
   const id = data["id"] as string;
@@ -50,10 +75,47 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   }, [edges, id]);
 
   useEffect(() => {
+    // When file changes, store it in the global storage
+    if (file) {
+      // Use node ID as file ID for simplicity
+      OllamaFileStorage.storeFile(file, id);
+    } else {
+      // Remove file if no longer needed
+      OllamaFileStorage.removeFile(id);
+    }
+
+    // Create serializable file info
+    let fileInfo: SerializableFileInfo | null = null;
+    if (file) {
+      fileInfo = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+      };
+    }
+
+    // Update Redux with serializable info only
     dispatch(
-      updateNodeData({ id, data: { id, model, instructions, prompt, file } })
+      updateNodeData({
+        id,
+        data: {
+          id,
+          model,
+          instructions,
+          prompt,
+          file: fileInfo,
+        },
+      })
     );
   }, [model, instructions, prompt, dispatch, id, file]);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      OllamaFileStorage.removeFile(id);
+    };
+  }, [id]);
 
   return (
     <div className="grid gap-4 p-4 bg-muted shadow-lg rounded-lg border w-[350px]">
@@ -127,13 +189,13 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 bg-gray-700 rounded-full"
+        className="w-6 h-6 bg-primary rounded-full"
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 bg-gray-700 rounded-full"
+        className="w-6 h-6 bg-primary rounded-full"
         isConnectable={isConnectable}
       />
     </div>
