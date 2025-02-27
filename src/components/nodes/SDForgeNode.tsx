@@ -203,13 +203,21 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 bg-gray-700 rounded-full"
+        style={{
+          width: "16px",
+          height: "16px",
+          background: "#6d28d9",
+        }}
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 bg-gray-700 rounded-full"
+        style={{
+          width: "16px",
+          height: "16px",
+          background: "#6d28d9",
+        }}
         isConnectable={isConnectable}
       />
     </div>

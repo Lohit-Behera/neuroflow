@@ -1,4 +1,6 @@
+// components/Flow.tsx
 "use client";
+
 import React, { useCallback } from "react";
 import {
   ReactFlow,
@@ -21,11 +23,17 @@ import SDForgeNode from "@/components/nodes/SDForgeNode";
 import StartNode from "@/components/nodes/StartNode";
 import "@xyflow/react/dist/style.css";
 import { ZoomSlider } from "@/components/zoom-slider";
+import ConnectionLine from "@/components/ConnectionLine";
+import AnimatedEdge from "./AnimatedEdge";
 
 const nodeTypes = {
   startNode: StartNode,
   ollamaNode: OllamaNode,
   sdForgeNode: SDForgeNode,
+};
+
+const edgeTypes = {
+  animatedSvg: AnimatedEdge,
 };
 
 const Flow: React.FC = () => {
@@ -69,11 +77,15 @@ const Flow: React.FC = () => {
         edges={edges.map((edge) => ({
           ...edge,
           id: edge.id || `${edge.source}-${edge.target}`,
+          animated: true,
+          type: "animatedSvg",
         }))}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        connectionLineComponent={ConnectionLine} // Use the custom connection line
         fitView
       >
         <Background size={2} gap={22} />

@@ -14,6 +14,8 @@ import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
 import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
 import { Input } from "../ui/input";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export const OllamaFileStorage = {
   files: {} as Record<string, File>,
@@ -43,6 +45,7 @@ export interface SerializableFileInfo {
 const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const dispatch = useAppDispatch();
   const id = data["id"] as string;
+  const { theme } = useTheme();
 
   const ollamaModels = useAppSelector((state) => state.ollama.models);
   const edges = useAppSelector((state) => state.flow.edges);
@@ -120,9 +123,18 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   return (
     <div className="grid gap-4 p-4 bg-muted shadow-lg rounded-lg border w-[350px]">
       <div className="flex justify-between">
-        <h4 className="text-sm md:text-lg text-center font-semibold mb-2">
-          Ollama Node
-        </h4>
+        <div className="flex space-x-2 items-center">
+          <Image
+            src="/ollama.svg"
+            width={30}
+            height={30}
+            alt="ollama"
+            className={`w-10 h-10 nodrag ${theme === "dark" ? "invert" : ""}`}
+          />
+          <h4 className="text-sm md:text-lg text-center font-semibold ">
+            Ollama Node
+          </h4>
+        </div>
         <Button
           variant="destructive"
           size="icon"
@@ -189,13 +201,21 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="w-6 h-6 bg-primary rounded-full"
+        style={{
+          width: "16px",
+          height: "16px",
+          background: "#6d28d9",
+        }}
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="w-6 h-6 bg-primary rounded-full"
+        style={{
+          width: "16px",
+          height: "16px",
+          background: "#6d28d9",
+        }}
         isConnectable={isConnectable}
       />
     </div>

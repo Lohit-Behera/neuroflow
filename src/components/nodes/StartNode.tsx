@@ -164,7 +164,11 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
       <Handle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 bg-gray-700 rounded-full"
+        style={{
+          width: "16px",
+          height: "16px",
+          background: "#6d28d9",
+        }}
         isConnectable={isConnectable}
       />
 
