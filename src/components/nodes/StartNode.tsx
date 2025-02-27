@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react";
+import React, { useState, useEffect, memo, useRef } from "react";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Play, Download, X } from "lucide-react";
@@ -33,6 +33,9 @@ ProcessingTitle.displayName = "ProcessingTitle";
 
 const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const dispatch = useAppDispatch();
+
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
   const edges = useAppSelector((state) => state.flow.edges);
   const nodes = useAppSelector((state) => state.flow.nodes);
   const nodeData = useAppSelector((state) => state.flow.nodeData);
@@ -47,6 +50,21 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const [canceled, setCanceled] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      // Find the scrollable container inside the ScrollArea component
+      const scrollContainer = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
+      if (scrollContainer) {
+        // Use requestAnimationFrame to ensure the scroll happens after render
+        requestAnimationFrame(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        });
+      }
+    }
+  }, [streamingOutput, currentImage, finalImage]);
 
   useEffect(() => {
     let progressInterval: NodeJS.Timeout | null = null;
@@ -171,11 +189,56 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
               <ProcessingTitle processing={processing} />
             </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="max-h-[75vh] overflow-y-auto">
-            <div className="space-y-4 pr-2">
-              <pre className="text-sm whitespace-pre-wrap">
-                {streamingOutput}
-              </pre>
+          <ScrollArea
+            className="max-h-[75vh] overflow-y-auto"
+            ref={scrollAreaRef}
+          >
+            <div className="space-y-6 pr-2">
+              {/* Split output by node type for better organization */}
+              {parseStreamingOutput(streamingOutput).map((section, index) => (
+                <div key={index} className="bg-muted/30 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold mb-2">
+                    {section.title}
+                  </h3>
+                  <pre className="text-sm whitespace-pre-wrap">
+                    {section.content}
+                  </pre>
+
+                  {/* Show image after its related SD Forge node output */}
+                  {section.nodeType === "SDForge" &&
+                    (currentImage || finalImage) && (
+                      <div className="mt-4 flex flex-col items-center space-y-4">
+                        <Image
+                          src={
+                            finalImage?.toString() ||
+                            (currentImage?.toString() as string)
+                          }
+                          width={512}
+                          height={512}
+                          alt="Generated"
+                          className="rounded-lg shadow-lg max-w-full"
+                        />
+
+                        {isGenerating && (
+                          <Button
+                            variant="destructive"
+                            onClick={handleCancelGeneration}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Cancel Generation
+                          </Button>
+                        )}
+
+                        {finalImage && !isGenerating && (
+                          <Button onClick={handleDownload}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Download Image
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                </div>
+              ))}
 
               {isGenerating && (
                 <div className="space-y-2">
@@ -184,35 +247,11 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
                 </div>
               )}
 
-              {(currentImage || finalImage) && (
-                <div className="flex flex-col items-center space-y-4">
-                  <Image
-                    src={
-                      finalImage?.toString() ||
-                      (currentImage?.toString() as string)
-                    }
-                    width={512}
-                    height={512}
-                    alt="Generated"
-                    className="rounded-lg shadow-lg max-w-full"
-                  />
-
-                  {isGenerating && (
-                    <Button
-                      variant="destructive"
-                      onClick={handleCancelGeneration}
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel Generation
-                    </Button>
-                  )}
-
-                  {finalImage && !isGenerating && (
-                    <Button onClick={handleDownload}>
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Image
-                    </Button>
-                  )}
+              {streamingOutput.includes("🚀 Execution Complete!") && (
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800 mb-8">
+                  <p className="text-center font-medium text-green-700 dark:text-green-300">
+                    🚀 Workflow Execution Complete!
+                  </p>
                 </div>
               )}
             </div>
@@ -224,3 +263,46 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
 };
 
 export default StartNode;
+
+function parseStreamingOutput(output: string) {
+  if (!output) return [];
+
+  const sections: Array<{
+    title: string;
+    content: string;
+    nodeType: "Ollama" | "SDForge" | "Other";
+  }> = [];
+
+  // Split by node execution markers
+  const nodeOutputs = output.split(/\nExecuting (Ollama|SDForge) Node: /);
+
+  // First item might be empty or contain initial output
+  if (nodeOutputs[0].trim()) {
+    sections.push({
+      title: "Initialization",
+      content: nodeOutputs[0].trim(),
+      nodeType: "Other",
+    });
+  }
+
+  // Process node outputs
+  for (let i = 1; i < nodeOutputs.length; i += 2) {
+    const nodeType = nodeOutputs[i] as "Ollama" | "SDForge";
+    const content = nodeOutputs[i + 1] || "";
+
+    // Extract node ID from the content (assuming it starts with the node ID)
+    const idMatch = content.match(/^([a-zA-Z0-9-_]+)/);
+    const nodeId = idMatch ? idMatch[1] : "unknown";
+
+    // Remove the completion message if it's in this section
+    const cleanContent = content.replace(/\n\n🚀 Execution Complete!/g, "");
+
+    sections.push({
+      title: `${nodeType} Node: ${nodeId}`,
+      content: cleanContent.trim(),
+      nodeType: nodeType,
+    });
+  }
+
+  return sections;
+}
