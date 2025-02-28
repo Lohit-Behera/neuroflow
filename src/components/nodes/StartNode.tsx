@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useRef } from "react";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
-import { Play, Download, X } from "lucide-react";
+import { Play, Download, X, Save } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import {
   Dialog,
@@ -9,12 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "../ui/scroll-area";
 import { startWorkflow, handleCancel } from "@/lib/execute/executeWorkflow";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 import Image from "next/image";
 import { BorderTrail } from "@/components/ui/border-trail";
+import { toast } from "sonner";
 
 // Create a memoized version of the title component
 const ProcessingTitle = memo(({ processing }: { processing: boolean }) => {
@@ -30,6 +38,14 @@ const ProcessingTitle = memo(({ processing }: { processing: boolean }) => {
 
 // Assign display name for better debugging
 ProcessingTitle.displayName = "ProcessingTitle";
+
+interface SavedOutput {
+  id: string;
+  name: string;
+  timestamp: number;
+  output: string;
+  image: string | null;
+}
 
 const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const dispatch = useAppDispatch();
@@ -50,6 +66,9 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const [canceled, setCanceled] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const [savePopoverOpen, setSavePopoverOpen] = useState(false);
+  const [showSaveButton, setShowSaveButton] = useState(true);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -120,6 +139,50 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    }
+  };
+
+  const handleSave = () => {
+    if (!saveName.trim()) {
+      toast.error("Please enter a name for your output");
+      return;
+    }
+
+    // Create a unique ID for the saved output
+    const outputId = `output-${Date.now()}`;
+
+    // Prepare the data to save
+    const savedOutput: SavedOutput = {
+      id: outputId,
+      name: saveName.trim(),
+      timestamp: Date.now(),
+      output: streamingOutput,
+      image: finalImage,
+    };
+
+    try {
+      // Get existing saved outputs
+      const existingOutputsJson = localStorage.getItem("savedWorkflowOutputs");
+      const existingOutputs: SavedOutput[] = existingOutputsJson
+        ? JSON.parse(existingOutputsJson)
+        : [];
+
+      // Add new output to the list
+      const updatedOutputs = [savedOutput, ...existingOutputs];
+
+      // Save back to localStorage
+      localStorage.setItem(
+        "savedWorkflowOutputs",
+        JSON.stringify(updatedOutputs)
+      );
+
+      // Close popover and show success message
+      setSavePopoverOpen(false);
+      setSaveName("");
+      toast.success("Output saved successfully");
+    } catch (error) {
+      toast.error("Failed to save output");
+      console.error("Save error:", error);
     }
   };
 
@@ -234,10 +297,12 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
                         )}
 
                         {finalImage && !isGenerating && (
-                          <Button onClick={handleDownload}>
-                            <Download className="w-4 h-4 mr-2" />
-                            Download Image
-                          </Button>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            <Button onClick={handleDownload}>
+                              <Download className="w-4 h-4 mr-2" />
+                              Download Image
+                            </Button>
+                          </div>
                         )}
                       </div>
                     )}
@@ -252,10 +317,46 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
               )}
 
               {streamingOutput.includes("🚀 Execution Complete!") && (
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800 mb-8">
-                  <p className="text-center font-medium text-green-700 dark:text-green-300">
-                    🚀 Workflow Execution Complete!
-                  </p>
+                <div className="flex flex-col space-x-2">
+                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800 mb-8">
+                    <p className="text-center font-medium text-green-700 dark:text-green-300">
+                      🚀 Workflow Execution Complete!
+                    </p>
+                  </div>
+                  <Popover
+                    open={savePopoverOpen}
+                    onOpenChange={setSavePopoverOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button variant="outline">
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Result
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80">
+                      <div className="grid gap-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium leading-none">
+                            Save Output
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            Name and save your workflow result
+                          </p>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="name">Name</Label>
+                          <Input
+                            id="name"
+                            value={saveName}
+                            onChange={(e) => setSaveName(e.target.value)}
+                            placeholder="My awesome result"
+                            className="col-span-3"
+                          />
+                        </div>
+                        <Button onClick={handleSave}>Save</Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               )}
             </div>

@@ -31,8 +31,7 @@ export function NavLogo() {
             />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">EShop</span>
-            <span className="truncate text-xs">Admin</span>
+            <span className="truncate font-semibold">Neuro Flow</span>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
