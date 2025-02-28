@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
 
 export function NavMain({
   items,
@@ -22,6 +23,7 @@ export function NavMain({
   }[];
 }) {
   const dispatch = useAppDispatch();
+  const pathname = usePathname();
   const nodes = useAppSelector((state) => state.flow.nodes);
 
   const handleAddNode = (type: "startNode" | "ollamaNode" | "sdForgeNode") => {
@@ -43,7 +45,10 @@ export function NavMain({
             {item.name === "startNode" ? (
               <SidebarMenuButton
                 onClick={() => handleAddNode(item.name)}
-                disabled={nodes.some((node) => node.type === "startNode")}
+                disabled={
+                  nodes.some((node) => node.type === "startNode") ||
+                  pathname !== "/"
+                }
               >
                 {item.icon && <item.icon size={16} />}
                 {item.title}
@@ -51,7 +56,7 @@ export function NavMain({
             ) : (
               <SidebarMenuButton
                 onClick={() => handleAddNode(item.name)}
-                disabled={item.disabled}
+                disabled={item.disabled || pathname !== "/"}
               >
                 {item.icon && <item.icon size={16} />}
                 {item.title}
