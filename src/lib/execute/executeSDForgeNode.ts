@@ -2,6 +2,7 @@ import { AppDispatch } from "@/lib/store";
 import { updateNodeData } from "@/lib/features/flowSlice";
 import { toast } from "sonner";
 import { isSDForgeNodeData, NodeDataMap } from "@/types/flowTypes";
+import { ImageNodeType } from "@/components/nodes/StartNode";
 
 interface ExecuteSDForgeNodeParams {
   nodeId: string;
@@ -15,6 +16,7 @@ interface ExecuteSDForgeNodeParams {
   setFinalImage: (image: string | null) => void;
   setCanceled: (canceled: boolean) => void;
   setIsGenerating: (isGenerating: boolean) => void;
+  setImageNode: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
 
 export const executeSDForgeNode = async ({
@@ -29,6 +31,7 @@ export const executeSDForgeNode = async ({
   setFinalImage,
   setCanceled,
   setIsGenerating,
+  setImageNode,
 }: ExecuteSDForgeNodeParams): Promise<string> => {
   const targetNode = nodeData[nodeId];
 
@@ -82,7 +85,10 @@ export const executeSDForgeNode = async ({
       const data = await res.json();
       const imageData = data.images[0];
       const finalImageUrl = `data:image/png;base64,${imageData}`;
-
+      setImageNode((prevImageNode) => ({
+        ...prevImageNode,
+        [nodeId]: finalImageUrl,
+      }));
       setFinalImage(finalImageUrl);
       setProgress(100);
       setIsGenerating(false);
@@ -93,7 +99,6 @@ export const executeSDForgeNode = async ({
           data: {
             id: nodeId,
             output: imageData,
-            outputType: "image",
           },
         })
       );

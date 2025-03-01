@@ -78,7 +78,7 @@ const Flow: React.FC = () => {
           ...edge,
           id: edge.id || `${edge.source}-${edge.target}`,
           animated: true,
-          type: "animatedSvg",
+          style: { stroke: "#6d28d9", strokeWidth: 2 },
         }))}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}

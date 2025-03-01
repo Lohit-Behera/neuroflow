@@ -4,6 +4,7 @@ import { executeSDForgeNode } from "./executeSDForgeNode";
 import { AppDispatch } from "@/lib/store";
 import { Node, Edge } from "@xyflow/react";
 import { NodeDataMap } from "@/types/flowTypes";
+import { ImageNodeType } from "@/components/nodes/StartNode";
 
 interface ExecuteNodeParams {
   nodeId: string;
@@ -21,6 +22,7 @@ interface ExecuteNodeParams {
   setCanceled: (canceled: boolean) => void;
   setIsGenerating: (isGenerating: boolean) => void;
   setProcessing: (completed: boolean) => void;
+  setImageNode: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
 
 export const executeNode = async ({
@@ -39,6 +41,7 @@ export const executeNode = async ({
   setCanceled,
   setIsGenerating,
   setProcessing,
+  setImageNode,
 }: ExecuteNodeParams): Promise<void> => {
   const node = nodes.find((n) => n.id === nodeId);
   if (!node) {
@@ -70,6 +73,7 @@ export const executeNode = async ({
         setFinalImage,
         setCanceled,
         setIsGenerating,
+        setImageNode,
       });
     } else {
       throw new Error(`Unknown node type: ${node.type}`);
@@ -93,6 +97,7 @@ export const executeNode = async ({
         setCanceled,
         setIsGenerating,
         setProcessing,
+        setImageNode,
       });
     } else {
       updateStreamingOutput("\n\n🚀 Execution Complete!");
@@ -149,6 +154,7 @@ export const startWorkflow = async ({
   setCanceled,
   setIsGenerating,
   setProcessing,
+  setImageNode,
 }: {
   startNodeId: string;
   nodes: Node[];
@@ -165,6 +171,7 @@ export const startWorkflow = async ({
   setCanceled: (canceled: boolean) => void;
   setIsGenerating: (isGenerating: boolean) => void;
   setProcessing: (completed: boolean) => void;
+  setImageNode: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }): Promise<void> => {
   setStreamingOutput("");
   setDialogOpen(true);
@@ -199,6 +206,7 @@ export const startWorkflow = async ({
       setCanceled,
       setIsGenerating,
       setProcessing,
+      setImageNode,
     });
   } catch (error) {
     if (error instanceof Error) {

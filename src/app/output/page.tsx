@@ -22,13 +22,13 @@ import {
 import Image from "next/image";
 import { toast } from "sonner";
 
-// Interface for saved workflow outputs
+// Updated interface for saved workflow outputs with multiple images
 interface SavedOutput {
   id: string;
   name: string;
   timestamp: number;
   output: string;
-  image: string | null;
+  images: Record<string, string>; // Changed from single image to multiple images
 }
 
 const SavedOutputsViewer: React.FC = () => {
@@ -45,7 +45,21 @@ const SavedOutputsViewer: React.FC = () => {
       const savedOutputsJson = localStorage.getItem("savedWorkflowOutputs");
       if (savedOutputsJson) {
         const outputs = JSON.parse(savedOutputsJson);
-        setSavedOutputs(outputs);
+
+        // Handle migration from old format (with single image) to new format (with images object)
+        const migratedOutputs = outputs.map((output: any) => {
+          if (output.image !== undefined && !output.images) {
+            // Convert old single image format to new multiple images format
+            return {
+              ...output,
+              images: output.image ? { main: output.image } : {},
+              image: undefined,
+            };
+          }
+          return output;
+        });
+
+        setSavedOutputs(migratedOutputs);
       }
     } catch (error) {
       console.error("Error loading saved outputs:", error);
@@ -81,15 +95,16 @@ const SavedOutputsViewer: React.FC = () => {
     }
   };
 
-  const handleDownloadImage = () => {
-    if (selectedOutput?.image) {
-      const link = document.createElement("a");
-      link.href = selectedOutput.image;
-      link.download = `${selectedOutput.name.replace(/\s+/g, "-")}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+  const handleDownloadImage = (imageUrl: string, imageName: string) => {
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = `${selectedOutput?.name.replace(
+      /\s+/g,
+      "-"
+    )}-${imageName}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const formatDate = (timestamp: number) => {
@@ -100,6 +115,7 @@ const SavedOutputsViewer: React.FC = () => {
     if (!output) return [];
 
     const sections: Array<{
+      nodeId: string;
       title: string;
       content: string;
       nodeType: "Ollama" | "SDForge" | "Other";
@@ -111,6 +127,7 @@ const SavedOutputsViewer: React.FC = () => {
     // First item might be empty or contain initial output
     if (nodeOutputs[0].trim()) {
       sections.push({
+        nodeId: "initial",
         title: "Initialization",
         content: nodeOutputs[0].trim(),
         nodeType: "Other",
@@ -130,6 +147,7 @@ const SavedOutputsViewer: React.FC = () => {
       const cleanContent = content.replace(/\n\n🚀 Execution Complete!/g, "");
 
       sections.push({
+        nodeId: nodeId,
         title: `${nodeType} Node: ${nodeId}`,
         content: cleanContent.trim(),
         nodeType: nodeType,
@@ -137,6 +155,21 @@ const SavedOutputsViewer: React.FC = () => {
     }
 
     return sections;
+  };
+
+  // Get thumbnail image for card display (first image if multiple exist)
+  const getThumbnailImage = (output: SavedOutput) => {
+    if (!output.images || Object.keys(output.images).length === 0) {
+      return null;
+    }
+
+    // Return the first image in the images object
+    return Object.values(output.images)[0];
+  };
+
+  // Count images for a given output
+  const getImageCount = (output: SavedOutput) => {
+    return output.images ? Object.keys(output.images).length : 0;
   };
 
   if (loading) {
@@ -148,7 +181,7 @@ const SavedOutputsViewer: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container h-full mx-auto py-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Saved Workflow Outputs</h2>
       </div>
@@ -163,52 +196,62 @@ const SavedOutputsViewer: React.FC = () => {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {savedOutputs.map((output) => (
-            <div
-              key={output.id}
-              className="bg-card rounded-lg border shadow-sm overflow-hidden"
-            >
-              <div className="p-4">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-semibold truncate">{output.name}</h3>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => handleDeleteOutput(output.id)}
-                  >
-                    <Trash2 />
-                  </Button>
-                </div>
+          {savedOutputs.map((output) => {
+            const thumbnailImage = getThumbnailImage(output);
+            const imageCount = getImageCount(output);
 
-                <div className="flex items-center text-sm text-muted-foreground mt-1 mb-3">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {formatDate(output.timestamp)}
-                </div>
+            return (
+              <div
+                key={output.id}
+                className="bg-card rounded-lg border shadow-sm overflow-hidden"
+              >
+                <div className="p-4">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-semibold truncate">{output.name}</h3>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => handleDeleteOutput(output.id)}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </div>
 
-                <div className="flex gap-2 items-center justify-between mt-4">
-                  {output.image ? (
-                    <div className="w-16 h-16 relative rounded overflow-hidden border">
-                      <Image
-                        src={output.image}
-                        alt={output.name}
-                        fill
-                        style={{ objectFit: "cover" }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-16 h-16 flex items-center justify-center bg-muted rounded">
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                  )}
+                  <div className="flex items-center text-sm text-muted-foreground mt-1 mb-3">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {formatDate(output.timestamp)}
+                  </div>
 
-                  <Button onClick={() => handleViewOutput(output)}>
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
+                  <div className="flex gap-2 items-center justify-between mt-4">
+                    {thumbnailImage ? (
+                      <div className="w-16 h-16 relative rounded overflow-hidden border">
+                        <Image
+                          src={thumbnailImage}
+                          alt={output.name}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                        {imageCount > 1 && (
+                          <div className="absolute bottom-0 right-0 bg-black/70 text-white text-xs px-1 rounded-tl">
+                            +{imageCount - 1}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 flex items-center justify-center bg-muted rounded">
+                        <FileText className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
+
+                    <Button onClick={() => handleViewOutput(output)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -223,38 +266,49 @@ const SavedOutputsViewer: React.FC = () => {
             </DialogHeader>
 
             <ScrollArea className="max-h-[60vh]">
-              {selectedOutput.image && (
-                <div className="mb-6 flex flex-col items-center">
-                  <Image
-                    src={selectedOutput.image}
-                    width={512}
-                    height={512}
-                    alt={selectedOutput.name}
-                    className="rounded-lg shadow-sm max-w-full"
-                  />
-                  <Button
-                    variant="outline"
-                    className="mt-2"
-                    onClick={handleDownloadImage}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Image
-                  </Button>
-                </div>
-              )}
-
               <div className="space-y-4">
                 {parseStreamingOutput(selectedOutput.output).map(
-                  (section, index) => (
-                    <div key={index} className="bg-muted/30 rounded-lg p-4">
-                      <h3 className="text-sm font-semibold mb-2">
-                        {section.title}
-                      </h3>
-                      <pre className="text-sm whitespace-pre-wrap">
-                        {section.content}
-                      </pre>
-                    </div>
-                  )
+                  (section, index) => {
+                    const sectionImage =
+                      selectedOutput.images?.[section.nodeId];
+
+                    return (
+                      <div key={index} className="bg-muted/30 rounded-lg p-4">
+                        <h3 className="text-sm font-semibold mb-2">
+                          {section.title}
+                        </h3>
+                        <pre className="text-sm whitespace-pre-wrap">
+                          {section.content}
+                        </pre>
+
+                        {/* Display image if this section has one */}
+                        {section.nodeType === "SDForge" && sectionImage && (
+                          <div className="mt-4 flex flex-col items-center">
+                            <Image
+                              src={sectionImage}
+                              width={512}
+                              height={512}
+                              alt={`${section.title} result`}
+                              className="rounded-lg shadow-sm max-w-full"
+                            />
+                            <Button
+                              variant="outline"
+                              className="mt-2"
+                              onClick={() =>
+                                handleDownloadImage(
+                                  sectionImage,
+                                  section.nodeId
+                                )
+                              }
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Download Image
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
                 )}
               </div>
             </ScrollArea>

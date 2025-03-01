@@ -44,7 +44,12 @@ interface SavedOutput {
   name: string;
   timestamp: number;
   output: string;
-  image: string | null;
+  images: Record<string, string>; // Updated to handle multiple images with nodeId as keys
+}
+
+export interface ImageNodeType {
+  nodeId: string;
+  finalImage: string | null;
 }
 
 const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
@@ -68,7 +73,7 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
   const [processing, setProcessing] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [savePopoverOpen, setSavePopoverOpen] = useState(false);
-  const [showSaveButton, setShowSaveButton] = useState(true);
+  const [imageNode, setImageNode] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -118,6 +123,7 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
 
     if (isGenerating && !canceled) {
       progressInterval = setInterval(checkProgress, 1000);
+      setCurrentImage(null);
     }
 
     return () => {
@@ -131,15 +137,13 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
     handleCancel(sdforgeBaseUrl, setCanceled, setIsGenerating);
   };
 
-  const handleDownload = () => {
-    if (finalImage) {
-      const link = document.createElement("a");
-      link.href = finalImage;
-      link.download = "generated_image.png";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+  const handleDownload = (sectionFinalImage: string) => {
+    const link = document.createElement("a");
+    link.href = sectionFinalImage;
+    link.download = "generated_image.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleSave = () => {
@@ -151,13 +155,13 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
     // Create a unique ID for the saved output
     const outputId = `output-${Date.now()}`;
 
-    // Prepare the data to save
+    // Prepare the data to save - now with multiple images
     const savedOutput: SavedOutput = {
       id: outputId,
       name: saveName.trim(),
       timestamp: Date.now(),
       output: streamingOutput,
-      image: finalImage,
+      images: imageNode, // Store all images from imageNode object
     };
 
     try {
@@ -203,7 +207,14 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
       setCanceled,
       setIsGenerating,
       setProcessing,
+      setImageNode,
     });
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setImageNode({});
+    setCurrentImage(null);
   };
 
   return (
@@ -235,7 +246,7 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
         isConnectable={isConnectable}
       />
 
-      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
         <DialogContent
           className="max-w-3xl max-h-[90vh] min-h-56 overflow-hidden"
           onInteractOutside={(e) => {
@@ -262,31 +273,41 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
           >
             <div className="space-y-6 pr-2">
               {/* Split output by node type for better organization */}
-              {parseStreamingOutput(streamingOutput).map((section, index) => (
-                <div key={index} className="bg-muted/30 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold mb-2">
-                    {section.title}
-                  </h3>
-                  <pre className="text-sm whitespace-pre-wrap">
-                    {section.content}
-                  </pre>
+              {parseStreamingOutput(streamingOutput).map((section, index) => {
+                const sectionFinalImage = imageNode[section.nodeId];
 
-                  {/* Show image after its related SD Forge node output */}
-                  {section.nodeType === "SDForge" &&
-                    (currentImage || finalImage) && (
+                return (
+                  <div key={index} className="bg-muted/30 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold mb-2">
+                      {section.title}
+                    </h3>
+                    <pre className="text-sm whitespace-pre-wrap">
+                      {section.content}
+                    </pre>
+
+                    {/* Show image after its related SD Forge node output */}
+                    {section.nodeType === "SDForge" && (
                       <div className="mt-4 flex flex-col items-center space-y-4">
-                        <Image
-                          src={
-                            finalImage?.toString() ||
-                            (currentImage?.toString() as string)
-                          }
-                          width={512}
-                          height={512}
-                          alt="Generated"
-                          className="rounded-lg shadow-lg max-w-full"
-                        />
+                        {sectionFinalImage && (
+                          <Image
+                            src={sectionFinalImage?.toString()}
+                            width={512}
+                            height={512}
+                            alt="Generated"
+                            className="rounded-lg shadow-lg max-w-full"
+                          />
+                        )}
+                        {!sectionFinalImage && isGenerating && currentImage && (
+                          <Image
+                            src={currentImage?.toString() as string}
+                            width={512}
+                            height={512}
+                            alt="Generated"
+                            className="rounded-lg shadow-lg max-w-full"
+                          />
+                        )}
 
-                        {isGenerating && (
+                        {!sectionFinalImage && isGenerating && (
                           <Button
                             variant="destructive"
                             onClick={handleCancelGeneration}
@@ -296,9 +317,11 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
                           </Button>
                         )}
 
-                        {finalImage && !isGenerating && (
+                        {sectionFinalImage && (
                           <div className="flex flex-wrap gap-2 justify-center">
-                            <Button onClick={handleDownload}>
+                            <Button
+                              onClick={() => handleDownload(sectionFinalImage)}
+                            >
                               <Download className="w-4 h-4 mr-2" />
                               Download Image
                             </Button>
@@ -306,8 +329,9 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
                         )}
                       </div>
                     )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
 
               {isGenerating && (
                 <div className="space-y-2">
@@ -373,6 +397,7 @@ function parseStreamingOutput(output: string) {
   if (!output) return [];
 
   const sections: Array<{
+    nodeId: string;
     title: string;
     content: string;
     nodeType: "Ollama" | "SDForge" | "Other";
@@ -384,6 +409,7 @@ function parseStreamingOutput(output: string) {
   // First item might be empty or contain initial output
   if (nodeOutputs[0].trim()) {
     sections.push({
+      nodeId: "initial",
       title: "Initialization",
       content: nodeOutputs[0].trim(),
       nodeType: "Other",
@@ -403,6 +429,7 @@ function parseStreamingOutput(output: string) {
     const cleanContent = content.replace(/\n\n🚀 Execution Complete!/g, "");
 
     sections.push({
+      nodeId: nodeId,
       title: `${nodeType} Node: ${nodeId}`,
       content: cleanContent.trim(),
       nodeType: nodeType,
