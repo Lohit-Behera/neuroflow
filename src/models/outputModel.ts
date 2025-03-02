@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-interface IOutput {
+export interface IOutput {
   _id: mongoose.Types.ObjectId;
   name: string;
   output: string;

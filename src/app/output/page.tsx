@@ -21,78 +21,33 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
-
-// Updated interface for saved workflow outputs with multiple images
-interface SavedOutput {
-  id: string;
-  name: string;
-  timestamp: number;
-  output: string;
-  images: Record<string, string>; // Changed from single image to multiple images
-}
-
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { fetchAllOutputs, SavedOutput } from "@/lib/features/outputSlice";
 const SavedOutputsViewer: React.FC = () => {
-  const [savedOutputs, setSavedOutputs] = useState<SavedOutput[]>([]);
   const [selectedOutput, setSelectedOutput] = useState<SavedOutput | null>(
     null
   );
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  // Load saved outputs from localStorage on component mount
+  const dispatch = useAppDispatch();
+
+  const allOutputs = useAppSelector((state) => state.output.allOutputs);
+  const allOutputsStatus = useAppSelector(
+    (state) => state.output.allOutputsStatus
+  );
+  const loading = allOutputsStatus === "loading";
+
   useEffect(() => {
-    try {
-      const savedOutputsJson = localStorage.getItem("savedWorkflowOutputs");
-      if (savedOutputsJson) {
-        const outputs = JSON.parse(savedOutputsJson);
-
-        // Handle migration from old format (with single image) to new format (with images object)
-        const migratedOutputs = outputs.map((output: any) => {
-          if (output.image !== undefined && !output.images) {
-            // Convert old single image format to new multiple images format
-            return {
-              ...output,
-              images: output.image ? { main: output.image } : {},
-              image: undefined,
-            };
-          }
-          return output;
-        });
-
-        setSavedOutputs(migratedOutputs);
-      }
-    } catch (error) {
-      console.error("Error loading saved outputs:", error);
-      toast.error("Failed to load saved outputs");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    dispatch(fetchAllOutputs());
+  }, [dispatch]);
 
   const handleViewOutput = (output: SavedOutput) => {
     setSelectedOutput(output);
     setViewDialogOpen(true);
   };
 
-  const handleDeleteOutput = (id: string) => {
-    try {
-      const updatedOutputs = savedOutputs.filter((output) => output.id !== id);
-      localStorage.setItem(
-        "savedWorkflowOutputs",
-        JSON.stringify(updatedOutputs)
-      );
-      setSavedOutputs(updatedOutputs);
-
-      // If currently viewing the deleted output, close the dialog
-      if (selectedOutput?.id === id) {
-        setViewDialogOpen(false);
-      }
-
-      toast.success("Output deleted successfully");
-    } catch (error) {
-      console.error("Error deleting output:", error);
-      toast.error("Failed to delete output");
-    }
+  const handleDeleteOutput = async (id: string) => {
+    console.log(id);
   };
 
   const handleDownloadImage = (imageUrl: string, imageName: string) => {
@@ -107,7 +62,7 @@ const SavedOutputsViewer: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
 
@@ -186,7 +141,7 @@ const SavedOutputsViewer: React.FC = () => {
         <h2 className="text-2xl font-bold">Saved Workflow Outputs</h2>
       </div>
 
-      {savedOutputs.length === 0 ? (
+      {allOutputs.length === 0 ? (
         <div className="bg-muted/50 rounded-lg p-8 text-center">
           <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">No saved outputs</h3>
@@ -196,13 +151,13 @@ const SavedOutputsViewer: React.FC = () => {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {savedOutputs.map((output) => {
+          {allOutputs.map((output) => {
             const thumbnailImage = getThumbnailImage(output);
             const imageCount = getImageCount(output);
 
             return (
               <div
-                key={output.id}
+                key={output._id}
                 className="bg-card rounded-lg border shadow-sm overflow-hidden"
               >
                 <div className="p-4">
@@ -211,7 +166,7 @@ const SavedOutputsViewer: React.FC = () => {
                     <Button
                       variant="destructive"
                       size="icon"
-                      onClick={() => handleDeleteOutput(output.id)}
+                      onClick={() => handleDeleteOutput(output._id)}
                     >
                       <Trash2 />
                     </Button>
@@ -219,7 +174,7 @@ const SavedOutputsViewer: React.FC = () => {
 
                   <div className="flex items-center text-sm text-muted-foreground mt-1 mb-3">
                     <Calendar className="h-3 w-3 mr-1" />
-                    {formatDate(output.timestamp)}
+                    {formatDate(output.createdAt)}
                   </div>
 
                   <div className="flex gap-2 items-center justify-between mt-4">
@@ -261,7 +216,7 @@ const SavedOutputsViewer: React.FC = () => {
             <DialogHeader>
               <DialogTitle>{selectedOutput.name}</DialogTitle>
               <DialogDescription>
-                Saved on {formatDate(selectedOutput.timestamp)}
+                Saved on {formatDate(selectedOutput.createdAt)}
               </DialogDescription>
             </DialogHeader>
 
@@ -316,7 +271,7 @@ const SavedOutputsViewer: React.FC = () => {
             <DialogFooter>
               <Button
                 variant="destructive"
-                onClick={() => handleDeleteOutput(selectedOutput.id)}
+                onClick={() => handleDeleteOutput(selectedOutput._id)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete

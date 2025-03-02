@@ -1,6 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 
+export interface SavedOutput {
+  _id: string;
+  name: string;
+  createdAt: string;
+  output: string;
+  images: Record<string, string> | null;
+}
+
 export const fetchCreateOutput = createAsyncThunk(
   "output/createOutput",
   async (
@@ -62,11 +70,11 @@ const outputSlice = createSlice({
     createOutputStatus: "idle",
     createOutputError: {},
 
-    allOutputs: [],
+    allOutputs: [] as SavedOutput[],
     allOutputsStatus: "idle",
     allOutputsError: {},
 
-    output: {},
+    output: {} as SavedOutput,
     outputStatus: "idle",
     outputError: {},
   },
