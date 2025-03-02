@@ -3,6 +3,7 @@ import flowSlice from "./features/flowSlice";
 import baseSlice from "./features/baseSlice";
 import ollamaSlice from "./features/ollamaSlice";
 import sdSlice from "./features/sdSlice";
+import outputSlice from "./features/outputSlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -11,6 +12,7 @@ export const makeStore = () => {
       base: baseSlice,
       ollama: ollamaSlice,
       sd: sdSlice,
+      output: outputSlice,
     },
   });
 };

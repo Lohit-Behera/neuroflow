@@ -23,6 +23,7 @@ import { TextShimmer } from "@/components/ui/text-shimmer";
 import Image from "next/image";
 import { BorderTrail } from "@/components/ui/border-trail";
 import { toast } from "sonner";
+import { fetchCreateOutput } from "@/lib/features/outputSlice";
 
 // Create a memoized version of the title component
 const ProcessingTitle = memo(({ processing }: { processing: boolean }) => {
@@ -151,43 +152,19 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
       toast.error("Please enter a name for your output");
       return;
     }
+    const createPromise = dispatch(
+      fetchCreateOutput({
+        output: streamingOutput,
+        name: saveName,
+        images: imageNode,
+      })
+    ).unwrap();
 
-    // Create a unique ID for the saved output
-    const outputId = `output-${Date.now()}`;
-
-    // Prepare the data to save - now with multiple images
-    const savedOutput: SavedOutput = {
-      id: outputId,
-      name: saveName.trim(),
-      timestamp: Date.now(),
-      output: streamingOutput,
-      images: imageNode, // Store all images from imageNode object
-    };
-
-    try {
-      // Get existing saved outputs
-      const existingOutputsJson = localStorage.getItem("savedWorkflowOutputs");
-      const existingOutputs: SavedOutput[] = existingOutputsJson
-        ? JSON.parse(existingOutputsJson)
-        : [];
-
-      // Add new output to the list
-      const updatedOutputs = [savedOutput, ...existingOutputs];
-
-      // Save back to localStorage
-      localStorage.setItem(
-        "savedWorkflowOutputs",
-        JSON.stringify(updatedOutputs)
-      );
-
-      // Close popover and show success message
-      setSavePopoverOpen(false);
-      setSaveName("");
-      toast.success("Output saved successfully");
-    } catch (error) {
-      toast.error("Failed to save output");
-      console.error("Save error:", error);
-    }
+    toast.promise(createPromise, {
+      loading: "Saving output...",
+      success: "Output saved successfully",
+      error: "Failed to save output",
+    });
   };
 
   const handleStart = async () => {
