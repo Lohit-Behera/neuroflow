@@ -5,7 +5,9 @@ import { Project } from "@/models/projectModel";
 export async function GET() {
   try {
     await connectToDb();
-    const projects = await Project.find().sort({ createdAt: -1 });
+    const projects = await Project.find()
+      .sort({ createdAt: -1 })
+      .select("_id name");
     if (!projects || projects.length === 0) {
       return NextResponse.json(
         { message: "Projects not found" },

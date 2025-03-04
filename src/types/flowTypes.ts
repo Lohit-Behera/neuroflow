@@ -64,7 +64,6 @@ export interface FlowState {
   nodes: Node[];
   edges: Edge[];
   nodeData: NodeDataMap;
-  selectedNodeId: string | null;
 }
 
 // Actions for updating flow state

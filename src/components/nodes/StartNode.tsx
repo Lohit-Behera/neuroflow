@@ -40,14 +40,6 @@ const ProcessingTitle = memo(({ processing }: { processing: boolean }) => {
 // Assign display name for better debugging
 ProcessingTitle.displayName = "ProcessingTitle";
 
-interface SavedOutput {
-  id: string;
-  name: string;
-  timestamp: number;
-  output: string;
-  images: Record<string, string>; // Updated to handle multiple images with nodeId as keys
-}
-
 export interface ImageNodeType {
   nodeId: string;
   finalImage: string | null;

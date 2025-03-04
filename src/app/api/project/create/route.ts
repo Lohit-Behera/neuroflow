@@ -12,6 +12,12 @@ export async function POST(req: NextRequest) {
       );
     }
     await connectToDb();
+    if (await Project.findOne({ name })) {
+      return NextResponse.json(
+        { message: "Project already exists" },
+        { status: 400 }
+      );
+    }
     const project = await Project.create({ name, flow });
     if (!project) {
       return NextResponse.json(

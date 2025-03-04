@@ -24,6 +24,14 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { deleteAll } from "@/lib/features/flowSlice";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { PopoverClose } from "@radix-ui/react-popover";
+import { fetchCreateProject } from "@/lib/features/projectSlice";
+import { toast } from "sonner";
 
 const ModeToggle = dynamic(
   () => import("@/components/mode-toggle").then((mod) => mod.ModeToggle),
@@ -40,6 +48,7 @@ function Header() {
   const modelsStatus = useAppSelector((state) => state.sd.modelsStatus);
   const samplersStatus = useAppSelector((state) => state.sd.samplersStatus);
   const schedulersStatus = useAppSelector((state) => state.sd.schedulersStatus);
+  const flowState = useAppSelector((state) => state.flow);
 
   const [open, setOpen] = useState(true);
   const [ollamaBaseUrl, setOllamaBaseUrl] = useState(ollama.baseUrl);
@@ -50,6 +59,7 @@ function Header() {
   const [errorOllama, setErrorOllama] = useState(false);
   const [errorSdforge, setErrorSdforge] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (!open) {
@@ -103,12 +113,45 @@ function Header() {
     dispatch(setUse({ useOllama, useSdforge }));
     setOpen(false);
   };
+
+  const handleSaveProject = () => {
+    const createProjectPromise = dispatch(
+      fetchCreateProject({ name, flow: flowState })
+    ).unwrap();
+    toast.promise(createProjectPromise, {
+      loading: "Saving project...",
+      success: () => {
+        setName("");
+        return "Project saved successfully";
+      },
+      error: "Failed to save project",
+    });
+  };
   return (
     <>
       <header className="z-20 w-full sticky top-0 p-2 backdrop-blur bg-background/10">
         <nav className="flex justify-between space-x-2">
           <SidebarTrigger />
           <div className="flex items-center justify-center space-x-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button>Save Project</Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <div className="grid gap-4">
+                  <Label htmlFor="project-name">Project Name</Label>
+                  <Input
+                    id="project-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <PopoverClose asChild>
+                    <Button onClick={handleSaveProject}>Save</Button>
+                  </PopoverClose>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <Button onClick={() => setOpen(true)} variant="outline">
               Set Details
             </Button>

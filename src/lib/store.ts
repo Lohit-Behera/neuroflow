@@ -4,6 +4,7 @@ import baseSlice from "./features/baseSlice";
 import ollamaSlice from "./features/ollamaSlice";
 import sdSlice from "./features/sdSlice";
 import outputSlice from "./features/outputSlice";
+import projectSlice from "./features/projectSlice";
 
 export const makeStore = () => {
   return configureStore({
@@ -13,6 +14,7 @@ export const makeStore = () => {
       ollama: ollamaSlice,
       sd: sdSlice,
       output: outputSlice,
+      project: projectSlice,
     },
   });
 };

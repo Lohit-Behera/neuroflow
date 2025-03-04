@@ -11,13 +11,16 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { useAppSelector } from "@/lib/hooks";
 import { Button } from "./ui/button";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { fetchAllProjects } from "@/lib/features/projectSlice";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const ollama = useAppSelector((state) => state.base.ollama);
   const sdorge = useAppSelector((state) => state.base.sdforge);
+  const projects = useAppSelector((state) => state.project.allProjects);
   const data = {
     navMain: [
       {
@@ -39,13 +42,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
   };
+
+  React.useEffect(() => {
+    dispatch(fetchAllProjects());
+  }, [dispatch]);
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <NavLogo />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} projects={projects} />
         <Button
           variant={"secondary"}
           size="sm"
