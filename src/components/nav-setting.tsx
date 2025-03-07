@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { FileStack, Settings2, Trash2 } from "lucide-react";
+import { FileStack, Save, Settings2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SidebarGroup, SidebarMenuButton } from "@/components/ui/sidebar";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
@@ -136,7 +136,7 @@ function NavSetting() {
         <Popover>
           <PopoverTrigger asChild>
             <SidebarMenuButton>
-              <Settings2 />
+              <Save />
               Save WorkFlow
             </SidebarMenuButton>
           </PopoverTrigger>

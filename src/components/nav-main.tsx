@@ -10,6 +10,9 @@ import {
   Network,
   FileStack,
   Settings2,
+  MoreVertical,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { addNode, setFlowData } from "@/lib/features/flowSlice";
@@ -26,10 +29,12 @@ import {
 import { usePathname } from "next/navigation";
 import {
   fetchAllProjects,
+  fetchDeleteProject,
   fetchProject,
+  fetchRenameProject,
   resetProjectStatus,
 } from "@/lib/features/projectSlice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Collapsible,
@@ -38,6 +43,25 @@ import {
 } from "@/components/ui/collapsible";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 
 export function NavMain() {
   const pathname = usePathname();
@@ -53,8 +77,14 @@ export function NavMain() {
   const projectStatus = useAppSelector((state) => state.project.projectStatus);
   const base = useAppSelector((state) => state.base);
 
+  const [openRename, setOpenRename] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string>("");
+  const [newWorkflowName, setNewWorkflowName] = useState<string>("");
+
   useEffect(() => {
-    dispatch(fetchAllProjects());
+    if (projects.length === 0 && allProjectStatus === "idle") {
+      dispatch(fetchAllProjects());
+    }
   }, [dispatch]);
 
   useEffect(() => {
@@ -91,6 +121,46 @@ export function NavMain() {
     dispatch(fetchProject(projectId));
   };
 
+  const handleRenameWorkflow = () => {
+    const renamePromise = dispatch(
+      fetchRenameProject({ projectId: selectedWorkflow, name: newWorkflowName })
+    ).unwrap();
+    toast.promise(renamePromise, {
+      loading: "Renaming workflow...",
+      success: (data) => {
+        setOpenRename(false);
+        setNewWorkflowName("");
+        setSelectedWorkflow("");
+        dispatch(fetchAllProjects());
+        return data.message || "Workflow renamed successfully";
+      },
+      error: (error) => {
+        return (
+          error ||
+          error.message ||
+          "Something went wrong while renaming workflow"
+        );
+      },
+    });
+  };
+
+  const handleDeleteWorkflow = (id: string) => {
+    const deletePromise = dispatch(fetchDeleteProject(id)).unwrap();
+    toast.promise(deletePromise, {
+      loading: "Deleting workflow...",
+      success: (data) => {
+        dispatch(fetchAllProjects());
+        return data.message || "Workflow deleted successfully";
+      },
+      error: (error) => {
+        return (
+          error ||
+          error.message ||
+          "Something went wrong while deleting workflow"
+        );
+      },
+    });
+  };
   return (
     <>
       <SidebarGroup>
@@ -116,13 +186,13 @@ export function NavMain() {
                     title: "Ollama Nodes",
                     name: "ollamaNode",
                     icon: Type,
-                    disabled: !ollama.useOllama && pathname !== "/",
+                    disabled: !ollama.useOllama || pathname !== "/",
                   },
                   {
                     title: "Stable Diffusion Nodes",
                     name: "sdForgeNode",
                     icon: Image,
-                    disabled: !sdforge.useSdforge && pathname !== "/",
+                    disabled: !sdforge.useSdforge || pathname !== "/",
                   },
                 ].map((item) => (
                   <SidebarMenuSubItem
@@ -177,15 +247,49 @@ export function NavMain() {
                     {projects.map((project) => (
                       <SidebarMenuSubItem key={project._id}>
                         <SidebarMenuSubButton asChild>
-                          <Button
-                            className="w-full justify-start"
-                            variant="ghost"
-                            onClick={() => handleAddProject(project._id)}
-                            disabled={pathname !== "/"}
-                          >
-                            <Workflow />
-                            {project.name}
-                          </Button>
+                          <div className="flex group/item">
+                            <Button
+                              className="flex-1 w-full justify-start px-0 py-0 hover:bg-transparent"
+                              variant="ghost"
+                              onClick={() => handleAddProject(project._id)}
+                              disabled={pathname !== "/"}
+                            >
+                              <Workflow />
+                              <span className="truncate">{project.name}</span>
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 p-0 opacity-0 group-hover/item:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  className="cursor-pointer"
+                                  onClick={() => {
+                                    setOpenRename(true);
+                                    setSelectedWorkflow(project._id);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  Rename
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleDeleteWorkflow(project._id)
+                                  }
+                                  className="text-destructive focus:text-destructive cursor-pointer"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
@@ -195,6 +299,35 @@ export function NavMain() {
             </CollapsibleContent>
           </div>
         </Collapsible>
+        <AlertDialog open={openRename}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Rename Workflow</AlertDialogTitle>
+              <AlertDialogDescription className="grid gap-4">
+                <Input
+                  id="name"
+                  value={newWorkflowName}
+                  onChange={(e) => setNewWorkflowName(e.target.value)}
+                  placeholder="Workflow Name"
+                />
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  setOpenRename(false);
+                  setSelectedWorkflow("");
+                  setNewWorkflowName("");
+                }}
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={handleRenameWorkflow}>
+                Rename
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SidebarGroup>
     </>
   );
