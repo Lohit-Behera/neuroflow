@@ -1,6 +1,16 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import {
+  Image,
+  Play,
+  Type,
+  ChevronRight,
+  ChartNetwork,
+  Workflow,
+  Network,
+  FileStack,
+  Settings2,
+} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { addNode, setFlowData } from "@/lib/features/flowSlice";
 import {
@@ -9,30 +19,43 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
-import { fetchProject, resetProjectStatus } from "@/lib/features/projectSlice";
+import {
+  fetchAllProjects,
+  fetchProject,
+  resetProjectStatus,
+} from "@/lib/features/projectSlice";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
-export function NavMain({
-  items,
-  projects = [],
-}: {
-  items: {
-    title: string;
-    name: "startNode" | "ollamaNode" | "sdForgeNode";
-    icon?: LucideIcon;
-    disabled?: boolean;
-  }[];
-  projects: { _id: string; name: string }[];
-}) {
-  const dispatch = useAppDispatch();
+export function NavMain() {
   const pathname = usePathname();
+  const dispatch = useAppDispatch();
+  const ollama = useAppSelector((state) => state.base.ollama);
+  const sdforge = useAppSelector((state) => state.base.sdforge);
+  const projects = useAppSelector((state) => state.project.allProjects);
+  const allProjectStatus = useAppSelector(
+    (state) => state.project.allProjectsStatus
+  );
   const nodes = useAppSelector((state) => state.flow.nodes);
   const project = useAppSelector((state) => state.project.project);
   const projectStatus = useAppSelector((state) => state.project.projectStatus);
   const base = useAppSelector((state) => state.base);
+
+  useEffect(() => {
+    dispatch(fetchAllProjects());
+  }, [dispatch]);
 
   useEffect(() => {
     if (projectStatus === "succeeded") {
@@ -59,7 +82,7 @@ export function NavMain({
       type === "startNode" &&
       nodes.some((node) => node.type === "startNode")
     ) {
-      return; // Prevent adding another start node
+      return;
     }
     dispatch(addNode({ type }));
   };
@@ -71,45 +94,107 @@ export function NavMain({
   return (
     <>
       <SidebarGroup>
-        <SidebarGroupLabel>Nodes</SidebarGroupLabel>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              {item.name === "startNode" ? (
-                <SidebarMenuButton
-                  onClick={() => handleAddNode(item.name)}
-                  disabled={
-                    nodes.some((node) => node.type === "startNode") ||
-                    pathname !== "/"
-                  }
-                >
-                  {item.icon && <item.icon size={16} />}
-                  {item.title}
-                </SidebarMenuButton>
-              ) : (
-                <SidebarMenuButton
-                  onClick={() => handleAddNode(item.name)}
-                  disabled={item.disabled || pathname !== "/"}
-                >
-                  {item.icon && <item.icon size={16} />}
-                  {item.title}
-                </SidebarMenuButton>
-              )}
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <Collapsible asChild defaultOpen className="group/collapsible">
+          <div>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton tooltip={"Nodes"}>
+                <ChartNetwork />
+                <span>Nodes</span>
+                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                {[
+                  {
+                    title: "Start Node",
+                    name: "startNode",
+                    icon: Play,
+                    disabled: pathname !== "/",
+                  },
+                  {
+                    title: "Ollama Nodes",
+                    name: "ollamaNode",
+                    icon: Type,
+                    disabled: !ollama.useOllama && pathname !== "/",
+                  },
+                  {
+                    title: "Stable Diffusion Nodes",
+                    name: "sdForgeNode",
+                    icon: Image,
+                    disabled: !sdforge.useSdforge && pathname !== "/",
+                  },
+                ].map((item) => (
+                  <SidebarMenuSubItem
+                    key={item.title}
+                    className="cursor-pointer"
+                  >
+                    <SidebarMenuSubButton asChild>
+                      <Button
+                        className="w-full justify-start"
+                        variant="ghost"
+                        disabled={item.disabled}
+                        onClick={() =>
+                          handleAddNode(
+                            item.name as
+                              | "startNode"
+                              | "ollamaNode"
+                              | "sdForgeNode"
+                          )
+                        }
+                      >
+                        {item.icon && <item.icon />}
+                        {item.title}
+                      </Button>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
       </SidebarGroup>
       <SidebarGroup>
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
-        <SidebarMenu>
-          {projects.map((project) => (
-            <SidebarMenuItem key={project._id}>
-              <SidebarMenuButton onClick={() => handleAddProject(project._id)}>
-                {project.name}
+        <Collapsible asChild>
+          <div>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton tooltip={"WorkFlow"}>
+                <Network />
+                <span>WorkFlow</span>
+                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
               </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarMenuSub>
+                {allProjectStatus === "loading" ? (
+                  <div className="grid gap-2">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <Skeleton key={index} className="h-6 w-full" />
+                    ))}
+                  </div>
+                ) : allProjectStatus === "succeeded" ? (
+                  <>
+                    {projects.map((project) => (
+                      <SidebarMenuSubItem key={project._id}>
+                        <SidebarMenuSubButton asChild>
+                          <Button
+                            className="w-full justify-start"
+                            variant="ghost"
+                            onClick={() => handleAddProject(project._id)}
+                            disabled={pathname !== "/"}
+                          >
+                            <Workflow />
+                            {project.name}
+                          </Button>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </>
+                ) : null}
+              </SidebarMenuSub>
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
       </SidebarGroup>
     </>
   );
