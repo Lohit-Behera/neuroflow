@@ -8,8 +8,6 @@ import {
   ChartNetwork,
   Workflow,
   Network,
-  FileStack,
-  Settings2,
   MoreVertical,
   Pencil,
   Trash2,
@@ -18,11 +16,8 @@ import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { addNode, setFlowData } from "@/lib/features/flowSlice";
 import {
   SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarMenuSub,
+  SidebarMenuButton,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
@@ -58,9 +53,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 
 export function NavMain() {
@@ -85,7 +78,7 @@ export function NavMain() {
     if (projects.length === 0 && allProjectStatus === "idle") {
       dispatch(fetchAllProjects());
     }
-  }, [dispatch]);
+  }, [dispatch, allProjectStatus, projects.length]);
 
   useEffect(() => {
     if (projectStatus === "succeeded") {
@@ -105,7 +98,14 @@ export function NavMain() {
     } else if (projectStatus === "failed") {
       dispatch(setFlowData({ edges: [], nodes: [], nodeData: {} }));
     }
-  }, [projectStatus, dispatch]);
+  }, [
+    projectStatus,
+    dispatch,
+    base.ollama.useOllama,
+    base.sdforge.useSdforge,
+    project.flow,
+    project.types,
+  ]);
 
   const handleAddNode = (type: "startNode" | "ollamaNode" | "sdForgeNode") => {
     if (

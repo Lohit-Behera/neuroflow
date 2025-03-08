@@ -17,7 +17,6 @@ import {
   Calendar,
   Loader2,
   FileText,
-  Image as ImageIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -45,7 +44,7 @@ const SavedOutputsViewer: React.FC = () => {
     if (allOutputs.length === 0) {
       dispatch(fetchAllOutputs());
     }
-  }, [dispatch]);
+  }, [dispatch, allOutputs.length]);
 
   const handleViewOutput = (output: SavedOutput) => {
     setSelectedOutput(output);

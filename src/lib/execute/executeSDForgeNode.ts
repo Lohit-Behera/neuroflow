@@ -2,7 +2,6 @@ import { AppDispatch } from "@/lib/store";
 import { updateNodeData } from "@/lib/features/flowSlice";
 import { toast } from "sonner";
 import { isSDForgeNodeData, NodeDataMap } from "@/types/flowTypes";
-import { ImageNodeType } from "@/components/nodes/StartNode";
 
 interface ExecuteSDForgeNodeParams {
   nodeId: string;

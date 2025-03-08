@@ -75,7 +75,7 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
         setDisabled({ prompt: false, file: false });
       }
     }
-  }, [edges, id]);
+  }, [edges, id, disabled, nodeData]);
 
   useEffect(() => {
     // When file changes, store it in the global storage

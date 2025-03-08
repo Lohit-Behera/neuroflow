@@ -1,7 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { Project } from "@/models/projectModel";
 import { connectToDb } from "@/lib/db";
-import mongoose from "mongoose";
 
 export async function PATCH(
   req: NextRequest,

@@ -4,7 +4,6 @@ import { executeSDForgeNode } from "./executeSDForgeNode";
 import { AppDispatch } from "@/lib/store";
 import { Node, Edge } from "@xyflow/react";
 import { NodeDataMap } from "@/types/flowTypes";
-import { ImageNodeType } from "@/components/nodes/StartNode";
 
 interface ExecuteNodeParams {
   nodeId: string;
