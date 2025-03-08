@@ -249,7 +249,7 @@ export function NavMain() {
                         <SidebarMenuSubButton asChild>
                           <div className="flex group/item">
                             <Button
-                              className="flex-1 w-full justify-start px-0 py-0 hover:bg-transparent"
+                              className="flex-1 w-full justify-start px-0 py-0 hover:bg-transparent max-w-[80%]"
                               variant="ghost"
                               onClick={() => handleAddProject(project._id)}
                               disabled={pathname !== "/"}
@@ -286,9 +286,9 @@ export function NavMain() {
                                   onClick={() =>
                                     handleDeleteWorkflow(project._id)
                                   }
-                                  className="text-destructive focus:text-destructive cursor-pointer"
+                                  className=" cursor-pointer"
                                 >
-                                  <Trash2 className="h-4 w-4" />
+                                  <Trash2 className="h-4 w-4 text-destructive focus:text-destructive" />
                                   Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>

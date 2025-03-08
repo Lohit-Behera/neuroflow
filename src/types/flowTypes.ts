@@ -25,7 +25,7 @@ export interface OllamaNodeData extends BaseNodeData {
 
 // SDForge node specific data
 export interface SDForgeNodeData extends BaseNodeData {
-  model: string | undefined;
+  model: string;
   prompt: string;
   negativePrompt?: string;
   width: number;
@@ -46,17 +46,17 @@ export interface NodeDataMap {
 
 // Type guards to determine node type
 export function isOllamaNodeData(data: NodeData): data is OllamaNodeData {
-  return (
-    (data as OllamaNodeData).prompt !== undefined &&
-    (data as OllamaNodeData).instructions !== undefined
-  );
+  return (data as OllamaNodeData)
+    ? (data as OllamaNodeData).prompt !== undefined &&
+        (data as OllamaNodeData).instructions !== undefined
+    : false;
 }
 
 export function isSDForgeNodeData(data: NodeData): data is SDForgeNodeData {
-  return (
-    (data as SDForgeNodeData).prompt !== undefined &&
-    (data as SDForgeNodeData).samplingSteps !== undefined
-  );
+  return (data as SDForgeNodeData)
+    ? (data as SDForgeNodeData).prompt !== undefined &&
+        (data as SDForgeNodeData).samplingSteps !== undefined
+    : false;
 }
 
 // Flow state in the Redux store

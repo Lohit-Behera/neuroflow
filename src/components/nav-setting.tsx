@@ -137,7 +137,10 @@ function NavSetting() {
         </SidebarMenuButton>
         <Popover>
           <PopoverTrigger asChild>
-            <SidebarMenuButton disabled={pathName !== "/"}>
+            <SidebarMenuButton
+              disabled={pathName !== "/"}
+              tooltip={"Save WorkFlow"}
+            >
               <Save />
               Save WorkFlow
             </SidebarMenuButton>
@@ -156,15 +159,16 @@ function NavSetting() {
             </div>
           </PopoverContent>
         </Popover>
-        <SidebarMenuButton onClick={() => setOpen(true)}>
+        <SidebarMenuButton tooltip={"Settings"} onClick={() => setOpen(true)}>
           <Settings2 />
           Settings
         </SidebarMenuButton>
         <SidebarMenuButton
+          tooltip={"Delete All Nodes"}
           disabled={pathName !== "/"}
           onClick={() => dispatch(deleteAll())}
         >
-          <Trash2 />
+          <Trash2 className="text-destructive hover:text-destructive/80" />
           Delete All Nodes
         </SidebarMenuButton>
       </SidebarGroup>

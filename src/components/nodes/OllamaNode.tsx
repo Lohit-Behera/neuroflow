@@ -16,6 +16,7 @@ import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
 import { Input } from "../ui/input";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { isOllamaNodeData } from "@/types/flowTypes";
 
 export const OllamaFileStorage = {
   files: {} as Record<string, File>,
@@ -51,9 +52,15 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const edges = useAppSelector((state) => state.flow.edges);
   const nodeData = useAppSelector((state) => state.flow.nodeData);
 
-  const [model, setModel] = useState("");
-  const [instructions, setInstructions] = useState("");
-  const [prompt, setPrompt] = useState("");
+  const [model, setModel] = useState(
+    isOllamaNodeData(nodeData[id]) ? nodeData[id].model : ""
+  );
+  const [instructions, setInstructions] = useState(
+    isOllamaNodeData(nodeData[id]) ? nodeData[id].instructions : ""
+  );
+  const [prompt, setPrompt] = useState(
+    isOllamaNodeData(nodeData[id]) ? nodeData[id].prompt : ""
+  );
   const [file, setFile] = useState<File | null>(null);
   const [disabled, setDisabled] = useState({
     prompt: false,
@@ -75,7 +82,7 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
         setDisabled({ prompt: false, file: false });
       }
     }
-  }, [edges, id, disabled, nodeData]);
+  }, [edges, id]);
 
   useEffect(() => {
     // When file changes, store it in the global storage

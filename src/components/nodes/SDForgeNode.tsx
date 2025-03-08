@@ -14,6 +14,7 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { Trash2 } from "lucide-react";
 import { deleteNode, updateNodeData } from "@/lib/features/flowSlice";
+import { isSDForgeNodeData } from "@/types/flowTypes";
 
 const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const dispatch = useAppDispatch();
@@ -26,14 +27,30 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   const edges = useAppSelector((state) => state.flow.edges);
   const nodeData = useAppSelector((state) => state.flow.nodeData);
 
-  const [prompt, setPrompt] = useState<string>("");
-  const [model, setModel] = useState<string>();
-  const [width, setWidth] = useState<number>(512);
-  const [height, setHeight] = useState<number>(512);
-  const [samplingSteps, setSamplingSteps] = useState<number>(20);
-  const [samplingMethod, setSamplingMethod] = useState<string>("Euler");
-  const [guidanceScale, setGuidanceScale] = useState<number>(7.5);
-  const [schedulerType, setSchedulerType] = useState<string>("automatic");
+  const [prompt, setPrompt] = useState<string>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id].prompt : ""
+  );
+  const [model, setModel] = useState<string>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id]?.model : ""
+  );
+  const [width, setWidth] = useState<number>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id].width : 512
+  );
+  const [height, setHeight] = useState<number>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id].height : 521
+  );
+  const [samplingSteps, setSamplingSteps] = useState<number>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id].samplingSteps : 20
+  );
+  const [samplingMethod, setSamplingMethod] = useState<string>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id].samplingMethod : "Euler a"
+  );
+  const [guidanceScale, setGuidanceScale] = useState<number>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id].guidanceScale : 7
+  );
+  const [schedulerType, setSchedulerType] = useState<string>(
+    isSDForgeNodeData(nodeData[id]) ? nodeData[id].schedulerType : "automatic"
+  );
   const [disabledPrompt, setDisabledPrompt] = useState(false);
 
   useEffect(() => {
@@ -47,7 +64,7 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
         setDisabledPrompt(false);
       }
     }
-  }, [edges, id, nodeData]);
+  }, [edges, id]);
 
   useEffect(() => {
     dispatch(
