@@ -262,7 +262,11 @@ export function NavMain() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 p-0 opacity-0 group-hover/item:opacity-100 data-[state=open]:opacity-100 transition-opacity"
+                                  className={`h-8 w-8 p-0 opacity-0 group-hover/item:opacity-100 data-[state=open]:opacity-100 transition-opacity ${
+                                    pathname !== "/"
+                                      ? "pointer-events-none"
+                                      : ""
+                                  }`}
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>

@@ -16,6 +16,7 @@ export async function GET() {
     }
     return NextResponse.json(projects);
   } catch (error) {
+    console.error("Error getting projects:", error);
     return NextResponse.json(
       { message: "Error getting projects" },
       { status: 500 }

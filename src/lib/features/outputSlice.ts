@@ -63,6 +63,23 @@ export const fetchGetOutput = createAsyncThunk(
   }
 );
 
+export const fetchDeleteOutput = createAsyncThunk(
+  "output/deleteOutput",
+  async (outputId: string, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.delete(`/api/output/delete/${outputId}`);
+      return data;
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      const errorMessage =
+        err.response?.data?.message ??
+        err.message ??
+        "Something went wrong while deleting output";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 const outputSlice = createSlice({
   name: "output",
   initialState: {
@@ -77,6 +94,10 @@ const outputSlice = createSlice({
     output: {} as SavedOutput,
     outputStatus: "idle",
     outputError: {},
+
+    deleteOutput: {},
+    deleteOutputStatus: "idle",
+    deleteOutputError: {},
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -90,7 +111,8 @@ const outputSlice = createSlice({
       })
       .addCase(fetchCreateOutput.rejected, (state, action) => {
         state.createOutputStatus = "failed";
-        state.createOutputError = action.payload || "Something went wrong";
+        state.createOutputError =
+          action.payload || "Something went wrong while creating output";
       })
       .addCase(fetchAllOutputs.pending, (state) => {
         state.allOutputsStatus = "loading";
@@ -101,7 +123,9 @@ const outputSlice = createSlice({
       })
       .addCase(fetchAllOutputs.rejected, (state, action) => {
         state.allOutputsStatus = "failed";
-        state.allOutputsError = action.payload || "Something went wrong";
+        state.allOutputsError =
+          action.payload ||
+          "Something went wrong while getting all the outputs";
       })
       .addCase(fetchGetOutput.pending, (state) => {
         state.outputStatus = "loading";
@@ -112,7 +136,21 @@ const outputSlice = createSlice({
       })
       .addCase(fetchGetOutput.rejected, (state, action) => {
         state.outputStatus = "failed";
-        state.outputError = action.payload || "Something went wrong";
+        state.outputError =
+          action.payload || "Something went wrong while getting output";
+      })
+
+      .addCase(fetchDeleteOutput.pending, (state) => {
+        state.deleteOutputStatus = "loading";
+      })
+      .addCase(fetchDeleteOutput.fulfilled, (state, action) => {
+        state.deleteOutputStatus = "succeeded";
+        state.deleteOutput = action.payload;
+      })
+      .addCase(fetchDeleteOutput.rejected, (state, action) => {
+        state.deleteOutputStatus = "failed";
+        state.deleteOutputError =
+          action.payload || "Something went wrong while deleting output";
       });
   },
 });

@@ -22,7 +22,11 @@ import {
 import Image from "next/image";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { fetchAllOutputs, SavedOutput } from "@/lib/features/outputSlice";
+import {
+  fetchAllOutputs,
+  fetchDeleteOutput,
+  SavedOutput,
+} from "@/lib/features/outputSlice";
 const SavedOutputsViewer: React.FC = () => {
   const [selectedOutput, setSelectedOutput] = useState<SavedOutput | null>(
     null
@@ -38,7 +42,9 @@ const SavedOutputsViewer: React.FC = () => {
   const loading = allOutputsStatus === "loading";
 
   useEffect(() => {
-    dispatch(fetchAllOutputs());
+    if (allOutputs.length === 0) {
+      dispatch(fetchAllOutputs());
+    }
   }, [dispatch]);
 
   const handleViewOutput = (output: SavedOutput) => {
@@ -47,7 +53,20 @@ const SavedOutputsViewer: React.FC = () => {
   };
 
   const handleDeleteOutput = async (id: string) => {
-    console.log(id);
+    const deletePromise = dispatch(fetchDeleteOutput(id)).unwrap();
+    toast.promise(deletePromise, {
+      loading: "Deleting output...",
+      success: (data) => {
+        dispatch(fetchAllOutputs());
+        setViewDialogOpen(false);
+        return data.message || "Output deleted successfully";
+      },
+      error: (error) => {
+        return (
+          error || error.message || "Something went wrong while deleting output"
+        );
+      },
+    });
   };
 
   const handleDownloadImage = (imageUrl: string, imageName: string) => {

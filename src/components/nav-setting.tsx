@@ -33,9 +33,11 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { deleteAll } from "@/lib/features/flowSlice";
+import { usePathname } from "next/navigation";
 
 function NavSetting() {
   const router = useRouter();
+  const pathName = usePathname();
 
   const dispatch = useAppDispatch();
   const ollama = useAppSelector((state) => state.base.ollama);
@@ -135,7 +137,7 @@ function NavSetting() {
         </SidebarMenuButton>
         <Popover>
           <PopoverTrigger asChild>
-            <SidebarMenuButton>
+            <SidebarMenuButton disabled={pathName !== "/"}>
               <Save />
               Save WorkFlow
             </SidebarMenuButton>
@@ -158,7 +160,10 @@ function NavSetting() {
           <Settings2 />
           Settings
         </SidebarMenuButton>
-        <SidebarMenuButton onClick={() => dispatch(deleteAll())}>
+        <SidebarMenuButton
+          disabled={pathName !== "/"}
+          onClick={() => dispatch(deleteAll())}
+        >
           <Trash2 />
           Delete All Nodes
         </SidebarMenuButton>
