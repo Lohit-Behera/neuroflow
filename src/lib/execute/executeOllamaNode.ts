@@ -44,7 +44,6 @@ export const executeOllamaNode = async ({
       formData.append("baseUrl", ollamaBaseUrl || "");
       if (file) {
         const ollamaFile = OllamaFileStorage.getFile(nodeId);
-        console.log(ollamaFile);
         formData.append("file", ollamaFile || "");
       }
       if (previousNodeOutputType && previousNodeOutputType === "image") {

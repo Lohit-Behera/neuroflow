@@ -7,6 +7,7 @@ export interface BaseNodeData {
   label?: string;
   description?: string;
   output?: string | null;
+  image?: string | null;
   previousNodeOutputType?: "text" | "image";
   previousNodeLabel?: string;
 }
@@ -36,8 +37,26 @@ export interface SDForgeNodeData extends BaseNodeData {
   schedulerType: string;
 }
 
+// SD image to image node specific data
+export interface SDImageToImageNodeData extends BaseNodeData {
+  file?: SerializableFileInfo | null;
+  model: string;
+  prompt: string;
+  negativePrompt?: string;
+  width: number;
+  height: number;
+  samplingSteps: number;
+  samplingMethod: string;
+  guidanceScale: number;
+  schedulerType: string;
+}
+
 // Union type for all possible node data types
-export type NodeData = OllamaNodeData | SDForgeNodeData | BaseNodeData;
+export type NodeData =
+  | OllamaNodeData
+  | SDForgeNodeData
+  | SDImageToImageNodeData
+  | BaseNodeData;
 
 // Type for node data lookup by node ID
 export interface NodeDataMap {
@@ -56,6 +75,15 @@ export function isSDForgeNodeData(data: NodeData): data is SDForgeNodeData {
   return (data as SDForgeNodeData)
     ? (data as SDForgeNodeData).prompt !== undefined &&
         (data as SDForgeNodeData).samplingSteps !== undefined
+    : false;
+}
+
+export function isSDImageToImageNodeData(
+  data: NodeData
+): data is SDImageToImageNodeData {
+  return (data as SDImageToImageNodeData)
+    ? (data as SDImageToImageNodeData).prompt !== undefined &&
+        (data as SDImageToImageNodeData).samplingSteps !== undefined
     : false;
 }
 

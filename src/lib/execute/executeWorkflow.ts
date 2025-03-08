@@ -4,10 +4,12 @@ import { executeSDForgeNode } from "./executeSDForgeNode";
 import { AppDispatch } from "@/lib/store";
 import { Node, Edge } from "@xyflow/react";
 import { NodeDataMap } from "@/types/flowTypes";
+import { executeSDImageToImageNode } from "./execureSDImageToImageNode";
 
 interface ExecuteNodeParams {
   nodeId: string;
   input?: string;
+  image?: string | null;
   nodes: Node[];
   edges: Edge[];
   nodeData: NodeDataMap;
@@ -27,6 +29,7 @@ interface ExecuteNodeParams {
 export const executeNode = async ({
   nodeId,
   input = "",
+  image = null,
   nodes,
   edges,
   nodeData,
@@ -74,6 +77,22 @@ export const executeNode = async ({
         setIsGenerating,
         setImageNode,
       });
+    } else if (node.type === "sdImageToImageNode") {
+      output = await executeSDImageToImageNode({
+        nodeId,
+        input,
+        image,
+        nodeData,
+        sdforgeBaseUrl,
+        dispatch,
+        updateStreamingOutput,
+        setProgress,
+        setCurrentImage,
+        setFinalImage,
+        setCanceled,
+        setIsGenerating,
+        setImageNode,
+      });
     } else {
       throw new Error(`Unknown node type: ${node.type}`);
     }
@@ -83,6 +102,7 @@ export const executeNode = async ({
       await executeNode({
         nodeId: nextEdge.target,
         input: output,
+        image,
         nodes,
         edges,
         nodeData,

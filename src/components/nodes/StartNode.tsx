@@ -255,7 +255,8 @@ const StartNode: React.FC<NodeProps> = ({ id, isConnectable }) => {
                     </pre>
 
                     {/* Show image after its related SD Forge node output */}
-                    {section.nodeType === "SDForge" && (
+                    {(section.nodeType === "SDForge" ||
+                      section.nodeType === "SDImageToImage") && (
                       <div className="mt-4 flex flex-col items-center space-y-4">
                         {sectionFinalImage && (
                           <Image
@@ -369,39 +370,66 @@ function parseStreamingOutput(output: string) {
     nodeId: string;
     title: string;
     content: string;
-    nodeType: "Ollama" | "SDForge" | "Other";
+    nodeType: "Ollama" | "SDForge" | "SDImageToImage" | "Other";
   }> = [];
 
-  // Split by node execution markers
-  const nodeOutputs = output.split(/\nExecuting (Ollama|SDForge) Node: /);
+  // First check for any content before the first node marker
+  const initialSplit = output.split(
+    /\nExecuting (Ollama|SDForge|SDImageToImage|SD Image to Image) Node: /
+  );
 
-  // First item might be empty or contain initial output
-  if (nodeOutputs[0].trim()) {
+  // Add initial content if it exists
+  if (initialSplit[0].trim()) {
     sections.push({
       nodeId: "initial",
       title: "Initialization",
-      content: nodeOutputs[0].trim(),
+      content: initialSplit[0].trim(),
       nodeType: "Other",
     });
   }
 
-  // Process node outputs
-  for (let i = 1; i < nodeOutputs.length; i += 2) {
-    const nodeType = nodeOutputs[i] as "Ollama" | "SDForge";
-    const content = nodeOutputs[i + 1] || "";
+  // Process each node output section
+  for (let i = 1; i < initialSplit.length; i += 2) {
+    // This should contain the node type (Ollama, SDForge, etc.)
+    const rawNodeType = initialSplit[i];
+    // This should contain the content for that node
+    const nodeContent = initialSplit[i + 1] || "";
 
-    // Extract node ID from the content (assuming it starts with the node ID)
-    const idMatch = content.match(/^([a-zA-Z0-9-_]+)/);
+    // Map the raw node type string to our expected types
+    let nodeType: "Ollama" | "SDForge" | "SDImageToImage" | "Other" = "Other";
+
+    if (rawNodeType === "Ollama") {
+      nodeType = "Ollama";
+    } else if (rawNodeType === "SDForge") {
+      nodeType = "SDForge";
+    } else if (
+      rawNodeType === "SDImageToImage" ||
+      rawNodeType === "SD Image to Image"
+    ) {
+      nodeType = "SDImageToImage";
+    }
+
+    // Extract node ID from the content
+    const idMatch = nodeContent.match(/^([a-zA-Z0-9-_]+)/);
     const nodeId = idMatch ? idMatch[1] : "unknown";
 
-    // Remove the completion message if it's in this section
-    const cleanContent = content.replace(/\n\n🚀 Execution Complete!/g, "");
+    // Remove completion message if present
+    const cleanContent = nodeContent.replace(/\n\n🚀 Execution Complete!/g, "");
 
-    sections.push({
-      nodeId: nodeId,
-      title: `${nodeType} Node: ${nodeId}`,
+    // Log for debugging
+    console.log("Node section:", {
+      nodeId,
+      title: `${rawNodeType} Node: ${nodeId}`,
       content: cleanContent.trim(),
-      nodeType: nodeType,
+      nodeType,
+    });
+
+    // Add this section to our results
+    sections.push({
+      nodeId,
+      title: `${rawNodeType} Node: ${nodeId}`,
+      content: cleanContent.trim(),
+      nodeType,
     });
   }
 

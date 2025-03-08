@@ -20,6 +20,7 @@ import {
 } from "@/lib/features/flowSlice";
 import OllamaNode from "@/components/nodes/OllamaNode";
 import SDForgeNode from "@/components/nodes/SDForgeNode";
+import SDImageToImageNode from "./nodes/SDImageToImageNode";
 import StartNode from "@/components/nodes/StartNode";
 import "@xyflow/react/dist/style.css";
 import { ZoomSlider } from "@/components/zoom-slider";
@@ -30,6 +31,7 @@ const nodeTypes = {
   startNode: StartNode,
   ollamaNode: OllamaNode,
   sdForgeNode: SDForgeNode,
+  sdImageToImageNode: SDImageToImageNode,
 };
 
 const edgeTypes = {

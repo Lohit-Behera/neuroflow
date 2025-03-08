@@ -3,7 +3,11 @@ import { Node, Edge } from "@xyflow/react";
 import { NodeData, NodeDataMap } from "@/types/flowTypes";
 
 // Define node types
-export type NodeType = "startNode" | "ollamaNode" | "sdForgeNode";
+export type NodeType =
+  | "startNode"
+  | "ollamaNode"
+  | "sdForgeNode"
+  | "sdImageToImageNode";
 
 interface AddNodePayload {
   type: NodeType;

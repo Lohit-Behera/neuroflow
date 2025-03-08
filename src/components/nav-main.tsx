@@ -107,7 +107,9 @@ export function NavMain() {
     project.types,
   ]);
 
-  const handleAddNode = (type: "startNode" | "ollamaNode" | "sdForgeNode") => {
+  const handleAddNode = (
+    type: "startNode" | "ollamaNode" | "sdForgeNode" | "sdImageToImageNode"
+  ) => {
     if (
       type === "startNode" &&
       nodes.some((node) => node.type === "startNode")
@@ -194,6 +196,13 @@ export function NavMain() {
                     icon: Image,
                     disabled: !sdforge.useSdforge || pathname !== "/",
                   },
+
+                  {
+                    title: "Stable Diffusion Image Nodes",
+                    name: "sdImageToImageNode",
+                    icon: Image,
+                    disabled: !sdforge.useSdforge || pathname !== "/",
+                  },
                 ].map((item) => (
                   <SidebarMenuSubItem
                     key={item.title}
@@ -210,6 +219,7 @@ export function NavMain() {
                               | "startNode"
                               | "ollamaNode"
                               | "sdForgeNode"
+                              | "sdImageToImageNode"
                           )
                         }
                       >
