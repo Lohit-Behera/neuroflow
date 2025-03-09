@@ -85,7 +85,7 @@ const SDImageToImageNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
         setDisabledPrompt(false);
       }
     }
-  }, [edges, id]);
+  }, [edges, id, nodeData]);
 
   useEffect(() => {
     // When file changes, store it in the global storage

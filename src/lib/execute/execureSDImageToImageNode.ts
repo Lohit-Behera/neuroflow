@@ -1,11 +1,7 @@
 import { AppDispatch } from "@/lib/store";
 import { updateNodeData } from "@/lib/features/flowSlice";
 import { toast } from "sonner";
-import {
-  isSDForgeNodeData,
-  isSDImageToImageNodeData,
-  NodeDataMap,
-} from "@/types/flowTypes";
+import { isSDImageToImageNodeData, NodeDataMap } from "@/types/flowTypes";
 import { SDImageToImageFileStorage } from "@/components/nodes/SDImageToImageNode";
 
 interface ExecuteSDImageToImageNode {
@@ -62,7 +58,6 @@ export const executeSDImageToImageNode = async ({
       samplingMethod,
       guidanceScale,
       schedulerType,
-      file,
     } = targetNode;
 
     updateStreamingOutput(`\nExecuting SD Image to Image Node: ${nodeId}...\n`);

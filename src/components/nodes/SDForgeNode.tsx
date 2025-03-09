@@ -64,7 +64,7 @@ const SDForgeNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
         setDisabledPrompt(false);
       }
     }
-  }, [edges, id]);
+  }, [edges, id, nodeData]);
 
   useEffect(() => {
     dispatch(

@@ -34,6 +34,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { deleteAll } from "@/lib/features/flowSlice";
 import { usePathname } from "next/navigation";
+import { fetchAllOutputs } from "@/lib/features/outputSlice";
 
 function NavSetting() {
   const router = useRouter();
@@ -120,6 +121,7 @@ function NavSetting() {
       loading: "Saving project...",
       success: () => {
         setName("");
+        dispatch(fetchAllOutputs());
         return "Project saved successfully";
       },
       error: "Failed to save project",

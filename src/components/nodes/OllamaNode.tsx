@@ -70,19 +70,20 @@ const OllamaNode: React.FC<NodeProps> = ({ data, isConnectable }) => {
   useEffect(() => {
     const edge = edges.find((e) => e.target === id);
     const previousNode = nodeData[edge?.source as string];
+
     if (previousNode) {
       if (previousNode.label === "ollamaNode") {
-        setDisabled({ ...disabled, prompt: true });
+        setDisabled((prev) => ({ ...prev, prompt: true }));
         setPrompt("");
       } else if (previousNode.label === "sdForgeNode") {
-        setDisabled({ prompt: true, file: true });
+        setDisabled((prev) => ({ ...prev, prompt: true, file: true }));
         setPrompt("");
         setFile(null);
       } else {
-        setDisabled({ prompt: false, file: false });
+        setDisabled((prev) => ({ ...prev, prompt: false, file: false }));
       }
     }
-  }, [edges, id]);
+  }, [edges, id, nodeData]);
 
   useEffect(() => {
     // When file changes, store it in the global storage
